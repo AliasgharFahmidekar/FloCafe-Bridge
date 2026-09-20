@@ -88,6 +88,11 @@ async function main() {
     db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value);
 
   try {
+    setSetting('country', '');
+    const unconfiguredInfo = await getJson(baseUrl, '/api/server-app/info');
+    assert.equal(unconfiguredInfo.status, 409, 'Server App refuses to format regional values before a country is configured');
+    assert.equal(unconfiguredInfo.body.error, 'regional_not_configured');
+
     setSetting('country', 'CO');
     setSetting('currency', 'COP');
     setSetting('currency_symbol', '$');
@@ -121,10 +126,10 @@ async function main() {
     }, {
       country: 'KW',
       currency: 'KWD',
-      symbol: 'KWD',
+      symbol: 'د.ك.',
       position: 'suffix',
       fractionDigits: 3,
-    }, 'Server App exposes the KWD regional values derived from current settings');
+    }, 'Server App exposes the KWD regional values derived from current settings, from CLDR rather than a stored override');
 
     for (const role of ['cashier', 'chef']) {
       const response = await postJson(baseUrl, '/api/auth/login', {
