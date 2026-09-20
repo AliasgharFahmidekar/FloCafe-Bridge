@@ -299,13 +299,19 @@ router.post('/:id/test', requireRole(...ROLE_ACCESS.ownerManager), asyncHandler(
     const printer = db.prepare('SELECT * FROM printers WHERE id = ?').get(req.params.id) as any;
     if (!printer) return res.status(404).json({ error: 'Printer not found' });
 
+    // buildTestPage silently omits the timeZone option (server-local time)
+    // rather than throwing when timezone is missing — reject explicitly so
+    // the printed test page never shows the wrong instant.
+    const timezone = tenantSettingValue(db, 'timezone');
+    if (!timezone) return res.status(409).json({ error: 'regional_not_configured' });
+
     const profile = resolvePrinterProfile(printer);
     const capabilities = capabilitiesForPrinter(profile, printer.paper_width || profile.defaultPaperWidth);
     const testData = buildTestPage(
       printer.paper_width || profile.defaultPaperWidth,
       profile.cutMode,
       tenantLanguage(db),
-      tenantSettingValue(db, 'timezone') || 'Asia/Kolkata',
+      timezone,
       req.body?.rasterProbe === true ? capabilities : undefined,
     );
     let result: { ok: boolean; detail?: string } = { ok: false };
@@ -468,7 +474,7 @@ router.post('/print-bill', requireRole(...ROLE_ACCESS.sales), asyncHandler(async
       }
     }
 
-    const country = settings.country || 'IN';
+    const country = settings.country || '';
     const currency = resolveTenantCurrency(settings.currency, country);
     const business = {
       name: settings.business_name || '',
@@ -490,7 +496,7 @@ router.post('/print-bill', requireRole(...ROLE_ACCESS.sales), asyncHandler(async
       points_redeemed: pointsRedeemed,
       points_balance: pointsBalance,
       trim_decimals: settings.printer_trim_decimals === 'true',
-      timezone: settings.timezone || 'Asia/Kolkata',
+      timezone: settings.timezone || '',
       show_name: settings.bill_show_name !== 'false',
       show_address: settings.bill_show_address !== 'false',
       show_phone: settings.bill_show_phone !== 'false',

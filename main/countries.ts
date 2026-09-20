@@ -229,12 +229,22 @@ export const getCountryByCode = (code: string): Country | undefined => {
   return COUNTRIES.find((c) => c.code === code.toUpperCase());
 };
 
-export function resolveTenantCurrency(currency: unknown, countryCode: unknown): string {
+// countryCode is required: regional settings come from signup, never from a
+// fallback (docs/business-decisions.md). Every caller resolves this from an
+// already-configured store's settings/tenant, so RegionalNotConfiguredError
+// here indicates a real bug upstream, not a state to silently paper over.
+export function resolveTenantCurrency(currency: unknown, countryCode: string): string {
+  // The country must be real before an explicit currency is ever trusted —
+  // otherwise a syntactically-valid-but-bogus currency (e.g. 'ZZZ') masks an
+  // unresolvable country and this never throws, silently processing money
+  // under invalid regional settings.
+  const country = getCountryByCode(countryCode);
+  if (!country) throw new RegionalNotConfiguredError(countryCode);
   if (typeof currency === 'string') {
     const normalized = currency.trim().toUpperCase();
     if (isSyntacticallyValidCurrencyCode(normalized)) return normalized;
   }
-  return getCountryByCode(String(countryCode || ''))?.currency || 'INR';
+  return country.currency;
 }
 
 // Neutral fallback preferences for locales without country-specific options.
@@ -425,10 +435,10 @@ export const getCurrencyUnitAdapter = (
 
 export const formatCurrencyForTenant = (
   amount: number,
-  countryCode: string | undefined,
+  countryCode: string,
   currency: string,
   prefs?: LocalePreferences,
-): string => formatMoney(amount, currency, getCountryByCode(countryCode ?? 'IN')?.locale ?? 'en-US', prefs);
+): string => formatMoney(amount, currency, getCountryByCode(countryCode)?.locale ?? 'en-US', prefs);
 
 // Formats a plain number using the given locale's digits and grouping.
 export const formatNumber = (value: number, locale = 'en-US', numberingSystem?: string): string => {
@@ -442,13 +452,13 @@ export const formatNumber = (value: number, locale = 'en-US', numberingSystem?: 
 // Formats a plain number using tenant locale and digit preferences.
 export const formatNumberForTenant = (
   value: number,
-  countryCode: string | undefined,
+  countryCode: string,
   prefs?: LocalePreferences,
 ): string => {
   const { digits } = normalizePreferences(prefs);
   return formatNumber(
     value,
-    getCountryByCode(countryCode ?? 'IN')?.locale ?? 'en-US',
+    getCountryByCode(countryCode)?.locale ?? 'en-US',
     digits === 'latin' ? 'latn' : undefined,
   );
 };
@@ -462,14 +472,14 @@ function calendarOption(calendar: CalendarMode): 'gregory' | 'persian' | undefin
 // Formats a date with tenant timezone, preferences, and optional UI locale override.
 export const formatDateForTenant = (
   date: Date,
-  countryCode: string | undefined,
+  countryCode: string,
   timezone: string,
   prefs?: LocalePreferences,
   options: Intl.DateTimeFormatOptions = {},
   localeOverride?: string,
 ): string => {
   const { digits, calendar } = normalizePreferences(prefs);
-  const tenantLocale = getCountryByCode(countryCode ?? 'IN')?.locale || 'en-US';
+  const tenantLocale = getCountryByCode(countryCode)?.locale || 'en-US';
   const locale = localeOverride || tenantLocale;
   try {
     // Tenant preferences belong to the tenant profile; resolve defaults before UI override.
@@ -488,7 +498,13 @@ export const formatDateForTenant = (
   }
 };
 
-export const countryName = (code: string): string => dn.of(code.toUpperCase()) ?? code;
+export const countryName = (code: string): string => {
+  try {
+    return dn.of(code.toUpperCase()) ?? code;
+  } catch {
+    return code;
+  }
+};
 
 // Sourced via native Intl API (offline-first, no bundled tz database).
 export const listTimeZones = (): string[] => {
@@ -530,11 +546,15 @@ export const DEFAULT_COUNTRY_PROFILE = {
 // multi-zone countries. See docs/business-decisions.md, "Regional settings
 // come from signup, never from a fallback".
 
-/** Thrown when a store has no resolvable country. Callers should surface this
- * as a 409, not substitute a default country. */
+/** Thrown when a store has no resolvable country or, via the optional `field`,
+ * another required regional setting (e.g. timezone). Callers should surface
+ * this as a 409, not substitute a default. statusCode lets the many existing
+ * `error.statusCode || 500` route catch blocks map it correctly without each
+ * needing an explicit instanceof check. */
 export class RegionalNotConfiguredError extends Error {
-  constructor(countryCode: unknown) {
-    super(`Regional settings are not configured (country: ${JSON.stringify(countryCode)})`);
+  readonly statusCode = 409;
+  constructor(value: unknown, field: string = 'country') {
+    super(`Regional settings are not configured (${field}: ${JSON.stringify(value)})`);
     this.name = 'RegionalNotConfiguredError';
   }
 }
