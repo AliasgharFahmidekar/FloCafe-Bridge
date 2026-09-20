@@ -90,7 +90,6 @@ test('unknown country with an explicit syntactically-valid currency still throws
   // regional settings.
   assert.throws(() => resolveRegionalSnapshot({ country: 'ZZ', currency: 'ZZZ' }), RegionalNotConfiguredError);
 });
-
 test('valid stored timezone is kept as-is', () => {
   const snap = resolveRegionalSnapshot({ country: 'US', currency: 'USD', timezone: 'America/Los_Angeles' });
   assert.equal(snap.timezone, 'America/Los_Angeles');
