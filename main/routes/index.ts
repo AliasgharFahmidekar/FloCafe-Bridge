@@ -323,6 +323,7 @@ export function registerRoutes(app: Express): void {
           SELECT 1
           FROM bills
           WHERE order_id = ?
+            AND NOT (COALESCE(payment_status, '') = 'paid' AND COALESCE(paid_amount, 0) = 0)
             AND (
               COALESCE(payment_status, 'unpaid') <> 'unpaid'
               OR COALESCE(paid_amount, 0) > 0
@@ -568,7 +569,7 @@ export function registerRoutes(app: Express): void {
         if (['completed', 'cancelled'].includes(currentOrder.status)) {
           throw Object.assign(new Error('Cannot restore items on completed or cancelled orders'), { statusCode: 400 });
         }
-        if (db.prepare("SELECT id FROM bills WHERE order_id = ? AND payment_status = 'paid'").get(orderId)) {
+        if (db.prepare("SELECT id FROM bills WHERE order_id = ? AND payment_status IN ('paid', 'partial') AND COALESCE(paid_amount, 0) > 0").get(orderId)) {
           throw Object.assign(new Error('Cannot restore items on a paid order'), { statusCode: 400 });
         }
 
