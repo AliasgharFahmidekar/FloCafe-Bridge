@@ -327,6 +327,51 @@
     "refundsCount": "{count} Erstattungen",
     "ticketNoPayments": "Keine Zahlungen an diesem Tag"
   },
+  "inventory": {
+    "tabSupplies": "Vorräte",
+    "tabRecipes": "Rezepte",
+    "tabMovements": "Bewegungen",
+    "addSupply": "Vorrat hinzufügen",
+    "editSupply": "Vorrat bearbeiten",
+    "addRecipe": "Rezept erstellen",
+    "editRecipe": "Rezept bearbeiten",
+    "supplyName": "Name",
+    "baseUnit": "Basiseinheit",
+    "stock": "Bestand",
+    "threshold": "Schwellenwert für niedrigen Bestand",
+    "actions": "Aktionen",
+    "lowStockOnly": "Nur niedriger Bestand",
+    "includeInactive": "Inaktive einbeziehen",
+    "lowStock": "Niedriger Bestand",
+    "emptySupplies": "Noch keine Vorräte",
+    "emptyRecipes": "Noch keine Rezepte",
+    "emptyMovements": "Noch keine Bewegungen",
+    "recordMovement": "Bewegung erfassen",
+    "receive": "Erhalt",
+    "count": "Zählung",
+    "adjustment": "Anpassung",
+    "waste": "Verlust",
+    "recipeDepletion": "Rezeptentnahme",
+    "recipeRestore": "Rezeptwiederherstellung",
+    "movementType": "Typ",
+    "quantity": "Menge",
+    "stockAfter": "Bestand nach",
+    "reason": "Grund",
+    "actor": "Durch",
+    "date": "Datum",
+    "supply": "Vorrat",
+    "loadMore": "Mehr laden",
+    "product": "Produkt",
+    "yield": "Ertrag",
+    "components": "Zutaten",
+    "addComponent": "Zutat hinzufügen",
+    "noAccess": "Du hast keinen Zugriff auf die Bestandsverwaltung.",
+    "loadFailed": "Bestand konnte nicht geladen werden",
+    "saveFailed": "Speichern fehlgeschlagen",
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "confirmDeleteSupply": "Vorrat {name} löschen? Die Bewegungshistorie bleibt erhalten.",
+    "confirmDeleteRecipe": "Rezept für {name} löschen?"
+  },
   "kds": {
     "addonsLabel": "Zusätze",
     "authFailed": "Authentifizierung fehlgeschlagen",
@@ -397,7 +442,8 @@
     "toggleSidebar": "Seitenleiste umschalten",
     "uptimeLabel": "Laufzeit: ",
     "user": "Benutzer",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "inventory": "Bestand"
   },
   "orders": {
     "active": "Aktiv",
@@ -2125,7 +2171,8 @@
       "cloudAccountData": "Cloud-Konto- und Datenkontrollen verwalten",
       "databaseTools": "Datenbankwerkzeuge und Sicherungen nutzen",
       "serverApp": "Eigenständige Bedienungs-App verwenden",
-      "support": "Support kontaktieren und Diagnosedaten einsehen"
+      "support": "Support kontaktieren und Diagnosedaten einsehen",
+      "inventoryManage": "Vorräte und Rezepte verwalten"
     }
   },
   "support": {

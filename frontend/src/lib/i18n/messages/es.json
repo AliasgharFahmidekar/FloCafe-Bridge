@@ -327,6 +327,51 @@
     "refundsCount": "{count} reembolsos",
     "ticketNoPayments": "No hay pagos en este día"
   },
+  "inventory": {
+    "tabSupplies": "Insumos",
+    "tabRecipes": "Recetas",
+    "tabMovements": "Movimientos",
+    "addSupply": "Añadir insumo",
+    "editSupply": "Editar insumo",
+    "addRecipe": "Crear receta",
+    "editRecipe": "Editar receta",
+    "supplyName": "Nombre",
+    "baseUnit": "Unidad base",
+    "stock": "Stock",
+    "threshold": "Umbral de stock bajo",
+    "actions": "Acciones",
+    "lowStockOnly": "Solo stock bajo",
+    "includeInactive": "Incluir inactivos",
+    "lowStock": "Stock bajo",
+    "emptySupplies": "Aún no hay insumos",
+    "emptyRecipes": "Aún no hay recetas",
+    "emptyMovements": "Aún no hay movimientos",
+    "recordMovement": "Registrar movimiento",
+    "receive": "Recibir",
+    "count": "Conteo",
+    "adjustment": "Ajuste",
+    "waste": "Merma",
+    "recipeDepletion": "Consumo de receta",
+    "recipeRestore": "Restauración de receta",
+    "movementType": "Tipo",
+    "quantity": "Cantidad",
+    "stockAfter": "Stock después",
+    "reason": "Motivo",
+    "actor": "Por",
+    "date": "Fecha",
+    "supply": "Insumo",
+    "loadMore": "Cargar más",
+    "product": "Producto",
+    "yield": "Rendimiento",
+    "components": "Componentes",
+    "addComponent": "Añadir componente",
+    "noAccess": "No tienes acceso a la gestión de inventario.",
+    "loadFailed": "No se pudo cargar el inventario",
+    "saveFailed": "No se pudo guardar",
+    "deleteFailed": "No se pudo eliminar",
+    "confirmDeleteSupply": "¿Eliminar el insumo {name}? Su historial de movimientos se conservará.",
+    "confirmDeleteRecipe": "¿Eliminar la receta de {name}?"
+  },
   "kds": {
     "addonsLabel": "Adicionales",
     "authFailed": "Falló la autenticación",
@@ -397,7 +442,8 @@
     "toggleSidebar": "Expandir/contraer menú",
     "uptimeLabel": "Activo: ",
     "user": "Usuario",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "inventory": "Inventario"
   },
   "orders": {
     "active": "Activos",
@@ -2125,7 +2171,8 @@
       "cloudAccountData": "Gestionar la cuenta y los controles de datos en la nube",
       "databaseTools": "Usar herramientas y copias de seguridad de la base de datos",
       "serverApp": "Usar la aplicación independiente para servidores",
-      "support": "Contactar con soporte y ver diagnósticos"
+      "support": "Contactar con soporte y ver diagnósticos",
+      "inventoryManage": "Gestionar insumos y recetas"
     }
   },
   "support": {

@@ -327,6 +327,51 @@
     "refundsCount": "{count} reembolsos",
     "ticketNoPayments": "Sem pagamentos neste dia"
   },
+  "inventory": {
+    "tabSupplies": "Insumos",
+    "tabRecipes": "Receitas",
+    "tabMovements": "Movimentações",
+    "addSupply": "Adicionar insumo",
+    "editSupply": "Editar insumo",
+    "addRecipe": "Criar receita",
+    "editRecipe": "Editar receita",
+    "supplyName": "Nome",
+    "baseUnit": "Unidade base",
+    "stock": "Estoque",
+    "threshold": "Limite de estoque baixo",
+    "actions": "Ações",
+    "lowStockOnly": "Apenas estoque baixo",
+    "includeInactive": "Incluir inativos",
+    "lowStock": "Estoque baixo",
+    "emptySupplies": "Nenhum insumo ainda",
+    "emptyRecipes": "Nenhuma receita ainda",
+    "emptyMovements": "Nenhuma movimentação ainda",
+    "recordMovement": "Registrar movimentação",
+    "receive": "Receber",
+    "count": "Contagem",
+    "adjustment": "Ajuste",
+    "waste": "Perda",
+    "recipeDepletion": "Baixa de receita",
+    "recipeRestore": "Restauração de receita",
+    "movementType": "Tipo",
+    "quantity": "Quantidade",
+    "stockAfter": "Estoque após",
+    "reason": "Motivo",
+    "actor": "Por",
+    "date": "Data",
+    "supply": "Insumo",
+    "loadMore": "Carregar mais",
+    "product": "Produto",
+    "yield": "Rendimento",
+    "components": "Componentes",
+    "addComponent": "Adicionar componente",
+    "noAccess": "Você não tem acesso à gestão de estoque.",
+    "loadFailed": "Falha ao carregar o estoque",
+    "saveFailed": "Falha ao salvar",
+    "deleteFailed": "Falha ao excluir",
+    "confirmDeleteSupply": "Excluir o insumo {name}? O histórico de movimentações será mantido.",
+    "confirmDeleteRecipe": "Excluir a receita de {name}?"
+  },
   "kds": {
     "addonsLabel": "Adicionais",
     "authFailed": "Falha na autenticação",
@@ -397,7 +442,8 @@
     "toggleSidebar": "Alternar barra lateral",
     "uptimeLabel": "Ativo: ",
     "user": "Usuário",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "inventory": "Estoque"
   },
   "orders": {
     "active": "Ativos",
@@ -2125,7 +2171,8 @@
       "cloudAccountData": "Gerenciar a conta e os controles de dados na nuvem",
       "databaseTools": "Usar ferramentas e backups do banco de dados",
       "serverApp": "Usar o aplicativo independente do servidor",
-      "support": "Contatar o suporte e ver diagnósticos"
+      "support": "Contatar o suporte e ver diagnósticos",
+      "inventoryManage": "Gerenciar insumos e receitas"
     }
   },
   "support": {

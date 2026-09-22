@@ -327,6 +327,51 @@
     "refundsCount": "{count} iade",
     "ticketNoPayments": "Bu gün ödeme yok"
   },
+  "inventory": {
+    "tabSupplies": "Sarf malzemeleri",
+    "tabRecipes": "Tarifler",
+    "tabMovements": "Hareketler",
+    "addSupply": "Sarf malzemesi ekle",
+    "editSupply": "Sarf malzemesini düzenle",
+    "addRecipe": "Tarif oluştur",
+    "editRecipe": "Tarifi düzenle",
+    "supplyName": "Ad",
+    "baseUnit": "Temel birim",
+    "stock": "Stok",
+    "threshold": "Düşük stok eşiği",
+    "actions": "İşlemler",
+    "lowStockOnly": "Yalnızca düşük stok",
+    "includeInactive": "Pasifleri dahil et",
+    "lowStock": "Düşük stok",
+    "emptySupplies": "Henüz sarf malzemesi yok",
+    "emptyRecipes": "Henüz tarif yok",
+    "emptyMovements": "Henüz hareket yok",
+    "recordMovement": "Hareket kaydet",
+    "receive": "Teslim al",
+    "count": "Sayım",
+    "adjustment": "Düzeltme",
+    "waste": "Fire",
+    "recipeDepletion": "Tarif düşümü",
+    "recipeRestore": "Tarif geri yükleme",
+    "movementType": "Tür",
+    "quantity": "Miktar",
+    "stockAfter": "Sonraki stok",
+    "reason": "Sebep",
+    "actor": "Tarafından",
+    "date": "Tarih",
+    "supply": "Sarf malzemesi",
+    "loadMore": "Daha fazla yükle",
+    "product": "Ürün",
+    "yield": "Verim",
+    "components": "Bileşenler",
+    "addComponent": "Bileşen ekle",
+    "noAccess": "Stok yönetimine erişiminiz yok.",
+    "loadFailed": "Stok yüklenemedi",
+    "saveFailed": "Kaydedilemedi",
+    "deleteFailed": "Silinemedi",
+    "confirmDeleteSupply": "{name} sarf malzemesi silinsin mi? Hareket geçmişi korunacak.",
+    "confirmDeleteRecipe": "{name} için tarif silinsin mi?"
+  },
   "kds": {
     "addonsLabel": "Eklentiler",
     "authFailed": "Yetkilendirme başarısız",
@@ -397,7 +442,8 @@
     "toggleSidebar": "Kenar Çubuğunu Aç/Kapat",
     "uptimeLabel": "Çalışma Süresi",
     "user": "Kullanıcı",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "inventory": "Stok"
   },
   "orders": {
     "active": "Aktif",
@@ -2125,7 +2171,8 @@
       "cloudAccountData": "Bulut hesabı ve veri kontrollerini yönetme",
       "databaseTools": "Veritabanı araçlarını ve yedeklemeyi kullanma",
       "serverApp": "Bağımsız Garson Uygulamasını kullanma",
-      "support": "Destek ekibiyle iletişime geçme ve sistem tanılamayı görme"
+      "support": "Destek ekibiyle iletişime geçme ve sistem tanılamayı görme",
+      "inventoryManage": "Sarf malzemelerini ve tarifleri yönetme"
     }
   },
   "support": {

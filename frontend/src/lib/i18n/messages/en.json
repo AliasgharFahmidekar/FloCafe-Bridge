@@ -327,6 +327,51 @@
     "refundsCount": "{count} refunds",
     "ticketNoPayments": "No payments for this day"
   },
+  "inventory": {
+    "tabSupplies": "Supplies",
+    "tabRecipes": "Recipes",
+    "tabMovements": "Movements",
+    "addSupply": "Add supply",
+    "editSupply": "Edit supply",
+    "addRecipe": "Create recipe",
+    "editRecipe": "Edit recipe",
+    "supplyName": "Name",
+    "baseUnit": "Base unit",
+    "stock": "Stock",
+    "threshold": "Low stock threshold",
+    "actions": "Actions",
+    "lowStockOnly": "Low stock only",
+    "includeInactive": "Include inactive",
+    "lowStock": "Low stock",
+    "emptySupplies": "No supplies yet",
+    "emptyRecipes": "No recipes yet",
+    "emptyMovements": "No movements yet",
+    "recordMovement": "Record movement",
+    "receive": "Receive",
+    "count": "Count",
+    "adjustment": "Adjustment",
+    "waste": "Waste",
+    "recipeDepletion": "Recipe depletion",
+    "recipeRestore": "Recipe restore",
+    "movementType": "Type",
+    "quantity": "Quantity",
+    "stockAfter": "Stock after",
+    "reason": "Reason",
+    "actor": "By",
+    "date": "Date",
+    "supply": "Supply",
+    "loadMore": "Load more",
+    "product": "Product",
+    "yield": "Yield",
+    "components": "Components",
+    "addComponent": "Add component",
+    "noAccess": "You do not have access to inventory management.",
+    "loadFailed": "Failed to load inventory",
+    "saveFailed": "Failed to save",
+    "deleteFailed": "Failed to delete",
+    "confirmDeleteSupply": "Delete supply {name}? Its movement history will be kept.",
+    "confirmDeleteRecipe": "Delete the recipe for {name}?"
+  },
   "kds": {
     "addonsLabel": "Add-ons",
     "authFailed": "Authentication failed",
@@ -397,7 +442,8 @@
     "toggleSidebar": "Toggle sidebar",
     "uptimeLabel": "Up: ",
     "user": "User",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "inventory": "Inventory"
   },
   "orders": {
     "active": "Active",
@@ -2125,7 +2171,8 @@
       "cloudAccountData": "Manage cloud account and data controls",
       "databaseTools": "Use database tools and backups",
       "serverApp": "Use the standalone Server App",
-      "support": "Contact support and view diagnostics"
+      "support": "Contact support and view diagnostics",
+      "inventoryManage": "Manage supplies and recipes"
     }
   },
   "support": {

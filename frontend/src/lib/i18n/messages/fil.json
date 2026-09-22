@@ -327,6 +327,51 @@
     "refundsCount": "{count} refundo",
     "ticketNoPayments": "Walang bayad sa araw na ito"
   },
+  "inventory": {
+    "tabSupplies": "Mga Supply",
+    "tabRecipes": "Mga Recipe",
+    "tabMovements": "Mga Galaw",
+    "addSupply": "Magdagdag ng supply",
+    "editSupply": "I-edit ang supply",
+    "addRecipe": "Lumikha ng recipe",
+    "editRecipe": "I-edit ang recipe",
+    "supplyName": "Pangalan",
+    "baseUnit": "Batayang unit",
+    "stock": "Stock",
+    "threshold": "Ambang ng mababang stock",
+    "actions": "Mga Aksyon",
+    "lowStockOnly": "Mababang stock lamang",
+    "includeInactive": "Isama ang hindi aktibo",
+    "lowStock": "Mababang stock",
+    "emptySupplies": "Wala pang mga supply",
+    "emptyRecipes": "Wala pang mga recipe",
+    "emptyMovements": "Wala pang mga galaw",
+    "recordMovement": "Magtala ng galaw",
+    "receive": "Tanggapin",
+    "count": "Bilang",
+    "adjustment": "Pagwawasto",
+    "waste": "Basura",
+    "recipeDepletion": "Pagbabawas ng recipe",
+    "recipeRestore": "Pagbabalik ng recipe",
+    "movementType": "Uri",
+    "quantity": "Dam-i",
+    "stockAfter": "Stock pagkatapos",
+    "reason": "Rason",
+    "actor": "Ni",
+    "date": "Petsa",
+    "supply": "Supply",
+    "loadMore": "Mag-load pa",
+    "product": "Produkto",
+    "yield": "Yield",
+    "components": "Mga sangkap",
+    "addComponent": "Magdagdag ng sangkap",
+    "noAccess": "Wala kang access sa pamamahala ng imbentaryo.",
+    "loadFailed": "Hindi na-load ang imbentaryo",
+    "saveFailed": "Hindi na-save",
+    "deleteFailed": "Hindi na-delete",
+    "confirmDeleteSupply": "I-delete ang supply {name}? Mapapanatili ang kasaysayan ng mga galaw nito.",
+    "confirmDeleteRecipe": "I-delete ang recipe para sa {name}?"
+  },
   "kds": {
     "addonsLabel": "Mga Addon",
     "authFailed": "Nabigo ang pagpapatunay",
@@ -397,7 +442,8 @@
     "toggleSidebar": "I-toggle ang Sidebar",
     "uptimeLabel": "Uptime",
     "user": "Gumagamit",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "inventory": "Imbentaryo"
   },
   "orders": {
     "active": "Aktibo",
@@ -2125,7 +2171,8 @@
       "cloudAccountData": "Pamahalaan ang cloud account at mga kontrol sa data",
       "databaseTools": "Gamitin ang mga tool sa database at backup",
       "serverApp": "Gamitin ang standalone Server App",
-      "support": "Makipag-ugnayan sa suporta at tingnan ang diagnostics"
+      "support": "Makipag-ugnayan sa suporta at tingnan ang diagnostics",
+      "inventoryManage": "Pamahalaan ang mga supply at recipe"
     }
   },
   "support": {

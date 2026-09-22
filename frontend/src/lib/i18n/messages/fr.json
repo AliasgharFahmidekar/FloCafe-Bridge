@@ -327,6 +327,51 @@
     "refundsCount": "{count} remboursements",
     "ticketNoPayments": "Aucun paiement ce jour"
   },
+  "inventory": {
+    "tabSupplies": "Approvisionnements",
+    "tabRecipes": "Recettes",
+    "tabMovements": "Mouvements",
+    "addSupply": "Ajouter un approvisionnement",
+    "editSupply": "Modifier l’approvisionnement",
+    "addRecipe": "Créer une recette",
+    "editRecipe": "Modifier la recette",
+    "supplyName": "Nom",
+    "baseUnit": "Unité de base",
+    "stock": "Stock",
+    "threshold": "Seuil de stock bas",
+    "actions": "Actions",
+    "lowStockOnly": "Stock bas uniquement",
+    "includeInactive": "Inclure les inactifs",
+    "lowStock": "Stock bas",
+    "emptySupplies": "Aucun approvisionnement pour le moment",
+    "emptyRecipes": "Aucune recette pour le moment",
+    "emptyMovements": "Aucun mouvement pour le moment",
+    "recordMovement": "Enregistrer un mouvement",
+    "receive": "Réception",
+    "count": "Inventaire",
+    "adjustment": "Ajustement",
+    "waste": "Perte",
+    "recipeDepletion": "Sortie de recette",
+    "recipeRestore": "Restauration de recette",
+    "movementType": "Type",
+    "quantity": "Quantité",
+    "stockAfter": "Stock après",
+    "reason": "Motif",
+    "actor": "Par",
+    "date": "Date",
+    "supply": "Approvisionnement",
+    "loadMore": "Charger plus",
+    "product": "Produit",
+    "yield": "Rendement",
+    "components": "Composants",
+    "addComponent": "Ajouter un composant",
+    "noAccess": "Vous n’avez pas accès à la gestion du stock.",
+    "loadFailed": "Échec du chargement du stock",
+    "saveFailed": "Échec de l’enregistrement",
+    "deleteFailed": "Échec de la suppression",
+    "confirmDeleteSupply": "Supprimer l’approvisionnement {name} ? Son historique des mouvements sera conservé.",
+    "confirmDeleteRecipe": "Supprimer la recette de {name} ?"
+  },
   "kds": {
     "addonsLabel": "Options",
     "authFailed": "Échec de l’authentification",
@@ -397,7 +442,8 @@
     "toggleSidebar": "Afficher ou masquer la barre latérale",
     "uptimeLabel": "Actif depuis : ",
     "user": "Utilisateur",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "inventory": "Stock"
   },
   "orders": {
     "active": "Actives",
@@ -2125,7 +2171,8 @@
       "cloudAccountData": "Gérer le compte infonuagique et les paramètres de données",
       "databaseTools": "Utiliser les outils de base de données et les sauvegardes",
       "serverApp": "Utiliser l’application serveur autonome",
-      "support": "Contacter l’assistance et afficher les diagnostics"
+      "support": "Contacter l’assistance et afficher les diagnostics",
+      "inventoryManage": "Gérer les approvisionnements et les recettes"
     }
   },
   "support": {

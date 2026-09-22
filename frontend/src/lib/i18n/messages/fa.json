@@ -327,6 +327,51 @@
     "refundsCount": "{count} بازپرداخت",
     "ticketNoPayments": "در این روز پرداختی نشده"
   },
+  "inventory": {
+    "tabSupplies": "مواد اولیه",
+    "tabRecipes": "دستورها",
+    "tabMovements": "جابه‌جایی‌ها",
+    "addSupply": "افزودن ماده اولیه",
+    "editSupply": "ویرایش ماده اولیه",
+    "addRecipe": "ایجاد دستور",
+    "editRecipe": "ویرایش دستور",
+    "supplyName": "نام",
+    "baseUnit": "واحد پایه",
+    "stock": "موجودی",
+    "threshold": "آستانه موجودی کم",
+    "actions": "اقدامات",
+    "lowStockOnly": "فقط موجودی کم",
+    "includeInactive": "شامل غیرفعال‌ها",
+    "lowStock": "موجودی کم",
+    "emptySupplies": "هنوز ماده‌ای ثبت نشده",
+    "emptyRecipes": "هنوز دستوری ثبت نشده",
+    "emptyMovements": "هنوز جابه‌جایی ثبت نشده",
+    "recordMovement": "ثبت جابه‌جایی",
+    "receive": "دریافت",
+    "count": "شمارش",
+    "adjustment": "تعدیل",
+    "waste": "ضایعات",
+    "recipeDepletion": "مصرف دستور",
+    "recipeRestore": "بازگردانی دستور",
+    "movementType": "نوع",
+    "quantity": "مقدار",
+    "stockAfter": "موجودی پس از",
+    "reason": "دلیل",
+    "actor": "توسط",
+    "date": "تاریخ",
+    "supply": "ماده اولیه",
+    "loadMore": "بارگذاری بیشتر",
+    "product": "محصول",
+    "yield": "بازده",
+    "components": "اجزاء",
+    "addComponent": "افزودن جزء",
+    "noAccess": "شما به مدیریت موجودی دسترسی ندارید.",
+    "loadFailed": "بارگذاری موجودی ناموفق بود",
+    "saveFailed": "ذخیره ناموفق بود",
+    "deleteFailed": "حذف ناموفق بود",
+    "confirmDeleteSupply": "ماده اولیه {name} حذف شود؟ تاریخچه جابه‌جایی‌ها حفظ می‌شود.",
+    "confirmDeleteRecipe": "دستور {name} حذف شود؟"
+  },
   "kds": {
     "addonsLabel": "افزودنی‌ها",
     "authFailed": "احراز هویت انجام نشد",
@@ -397,7 +442,8 @@
     "toggleSidebar": "باز/بسته کردن نوار کناری",
     "uptimeLabel": "زمان روشن بودن: ",
     "user": "کاربر",
-    "whatsapp": "واتساپ"
+    "whatsapp": "واتساپ",
+    "inventory": "موجودی"
   },
   "orders": {
     "active": "فعال",
@@ -2125,7 +2171,8 @@
       "cloudAccountData": "مدیریت حساب و کنترل‌های داده ابری",
       "databaseTools": "استفاده از ابزار پایگاه‌داده و پشتیبان‌گیری",
       "serverApp": "استفاده از برنامه مستقل پیش‌خدمت",
-      "support": "تماس با پشتیبانی و مشاهده عیب‌یابی"
+      "support": "تماس با پشتیبانی و مشاهده عیب‌یابی",
+      "inventoryManage": "مدیریت مواد اولیه و دستورها"
     }
   },
   "support": {
