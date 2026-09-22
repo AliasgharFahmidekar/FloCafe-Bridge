@@ -85,6 +85,10 @@ export function checkPinRateLimit(key: string): boolean {
   return true;
 }
 
+export function resetPinRateLimitForTests(): void {
+  pinAttempts.clear();
+}
+
 function syncCustomerTagCounts(db: any, customerId: string, items: { product_id: string; quantity: number }[]) {
   const row = db.prepare('SELECT tag_counts FROM customers WHERE id = ?').get(customerId) as any;
   if (!row) return;
@@ -751,6 +755,12 @@ router.post('/:id/items', orderWriteRateLimit, requireRole(...ROLE_ACCESS.sales)
       if (['completed', 'cancelled'].includes(currentOrder.status)) {
         throw Object.assign(new Error('Cannot add items to a completed or cancelled order'), { statusCode: 400 });
       }
+      const refundedBill = db.prepare(
+        `SELECT 1 FROM bills WHERE order_id = ? AND payment_status IN ('refunded', 'partially_refunded') LIMIT 1`,
+      ).get(req.params.id);
+      if (refundedBill) {
+        throw Object.assign(new Error('Cannot add items to a refunded order'), { statusCode: 409 });
+      }
 
       try {
         for (const item of items) {
@@ -1297,6 +1307,12 @@ router.patch('/:id/discount', orderWriteRateLimit, requireRole(...ROLE_ACCESS.ow
       if (['completed', 'cancelled'].includes(currentOrder.status)) {
         throw Object.assign(new Error('Cannot apply discount to a completed or cancelled order'), { statusCode: 400 });
       }
+      const refundedBill = db.prepare(
+        `SELECT 1 FROM bills WHERE order_id = ? AND payment_status IN ('refunded', 'partially_refunded') LIMIT 1`,
+      ).get(req.params.id);
+      if (refundedBill) {
+        throw Object.assign(new Error('Cannot apply discount to a refunded bill'), { statusCode: 409 });
+      }
 
       const customer = currentOrder.customer_id
         ? db.prepare('SELECT * FROM customers WHERE id = ?').get(currentOrder.customer_id) as any
@@ -1410,6 +1426,12 @@ router.patch('/:id/items/:itemId/discount', orderWriteRateLimit, requireRole(...
       return res.status(409).json({ error: 'Discounts cannot be changed after a check has been split' });
     }
 
+    const refundedBill = db.prepare(
+      `SELECT 1 FROM bills WHERE order_id = ? AND payment_status IN ('refunded', 'partially_refunded') LIMIT 1`,
+    ).get(req.params.id);
+    if (refundedBill) {
+      return res.status(409).json({ error: 'Cannot apply discount to a refunded bill' });
+    }
     // Cannot apply discount to completed or cancelled orders
     if (['completed', 'cancelled'].includes(order.status)) {
       return res.status(400).json({ error: 'Cannot apply discount to a completed or cancelled order' });
