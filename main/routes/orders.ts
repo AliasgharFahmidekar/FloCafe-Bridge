@@ -20,6 +20,7 @@ import { ROLE_ACCESS, hasRole } from '../../shared/role-permissions';
 import { getCurrencyFractionDigits, getCurrencyMinorUnitFactor } from '../countries';
 import { getTenantCurrency } from './bills';
 import expressRateLimit from 'express-rate-limit';
+import { randomUUID } from 'crypto';
 
 const router = Router();
 const orderReadRateLimit = expressRateLimit({ windowMs: 60 * 1000, limit: 120, standardHeaders: true, legacyHeaders: false });
@@ -27,6 +28,19 @@ const orderWriteRateLimit = expressRateLimit({ windowMs: 60 * 1000, limit: 60, s
 const MAX_ORDER_IDEMPOTENCY_KEY_LENGTH = 128;
 const MAX_ORDER_ITEMS = 200;
 const OWNER_MANAGER_ROLE_PLACEHOLDERS = ROLE_ACCESS.ownerManager.map(() => '?').join(', ');
+
+function reportOrderCreateFailure(status: number, itemCount: number, stage: 'inventory_validation' | 'order_insert'): void {
+  try {
+    cloudSync.reportDiagnostic({
+      event_id: randomUUID(),
+      event_code: 'order.create.failed',
+      severity: 'error',
+      message: 'Order creation failed',
+      metadata: { stage, status, item_count: itemCount },
+      occurred_at: new Date().toISOString(),
+    });
+  } catch { /* diagnostics must never mask the original failure */ }
+}
 
 function orderIdempotencyKey(req: Request): string | null {
   const raw = req.get('Idempotency-Key');
@@ -444,6 +458,7 @@ router.post('/', orderWriteRateLimit, requireRole(...ROLE_ACCESS.sales), (req: R
     const authenticatedUserId = (req as any).user.userId;
 
     if (!Array.isArray(items) || items.length === 0) {
+      reportOrderCreateFailure(400, 0, 'order_insert');
       return res.status(400).json({ error: 'At least one item is required' });
     }
     if (items.length > MAX_ORDER_ITEMS) {
@@ -698,7 +713,13 @@ router.post('/', orderWriteRateLimit, requireRole(...ROLE_ACCESS.sales), (req: R
   } catch (error: any) {
     console.error('[Orders] Create error:', error);
     console.error("[API] Internal error:", error);
-    res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : "Internal server error" });
+    const statusCode = error.statusCode || 500;
+    reportOrderCreateFailure(
+      statusCode,
+      Array.isArray(req.body?.items) ? req.body.items.length : 0,
+      error.message === 'Insufficient stock' ? 'inventory_validation' : 'order_insert',
+    );
+    res.status(statusCode).json({ error: error.statusCode ? error.message : "Internal server error" });
   }
 });
 

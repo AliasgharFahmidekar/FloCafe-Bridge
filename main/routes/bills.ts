@@ -16,6 +16,7 @@ import {
 import { asyncHandler } from '../middleware/async-handler';
 import { notifyKdsUpdate, notifyOrderUpdated } from '../services/kds';
 import { printReceipt } from '../services/receipt';
+import { cloudSync } from '../services/cloud-sync';
 import { requireRole } from '../middleware/security';
 import { ROLE_ACCESS } from '../../shared/role-permissions';
 import {
@@ -2092,7 +2093,21 @@ router.post('/:id/payments', requireRole(...ROLE_ACCESS.ownerManagerCashier), (r
     res.json(result);
   } catch (error: any) {
     const statusCode = error.statusCode || 500;
+    const errorMessage = String(error.message || '');
+    const isCustomerMismatch = errorMessage === 'Payment customer does not match the bill customer';
     console.error('[API] Batch bill payment failed:', error);
+    if (statusCode >= 500 || isCustomerMismatch) {
+      try {
+        cloudSync.reportDiagnostic({
+          event_id: randomUUID(),
+          event_code: 'payment.batch.failed',
+          severity: 'error',
+          message: 'Payment batch failed',
+          metadata: { status: statusCode, stage: 'payment_batch' },
+          occurred_at: new Date().toISOString(),
+        });
+      } catch { /* diagnostics must never mask the original failure */ }
+    }
     res.status(statusCode).json({ error: statusCode >= 500 ? 'Bill payment failed' : error.message });
   }
 });
