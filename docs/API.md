@@ -1625,9 +1625,12 @@ Update business settings.
 period used by reports and cash closures. It is returned as `HH:mm`, defaults
 to `00:00`, and is trimmed before persistence; invalid values return HTTP 400.
 
-`currency` accepts any three-letter ASCII currency code. Leading/trailing
-whitespace is trimmed and lowercase input is normalized to uppercase before
-the value is persisted; invalid codes return the same HTTP 400 response.
+`currency` accepts the already-configured three-letter ASCII currency code.
+Leading/trailing whitespace is trimmed and lowercase input is normalized to
+uppercase. A different valid currency returns HTTP 409 with
+`currency_change_requires_reset`; post-setup changes must use the destructive
+[Currency reset](#currency-reset) flow. Invalid codes return the same HTTP 400
+response.
 
 When `tax_registration_number` is provided, the backend validates it against the active country pack's registration format. A mismatch returns HTTP 400:
 
@@ -1932,3 +1935,10 @@ Users with `chef` role have `category_ids` array. When accessing KDS:
 4. One user can have multiple categories
 
 Example: Chef1 (cat-1, cat-2) only sees Food and Beverages items.
+## Currency reset
+
+`GET /api/db-tools/currency-reset-impact` is owner-only and returns the active currency plus invoice, order, refund, customer, product, and add-on counts used by the destructive warning.
+
+`POST /api/db-tools/currency-reset` is owner-only and Master-PIN-gated. It accepts `currency`, `current_currency`, `confirmation_phrase` (`CHANGE TO <CODE>`), and `master_pin`. It creates a recovery backup, recreates the local database, preserves the sanitized menu catalog with monetary fields reset to zero, and returns the backup path. The active session becomes invalid and the client must return to first-run setup.
+
+Ordinary `PUT /api/settings/business` and `PUT /api/settings/currency` requests return HTTP 409 with `error: "currency_change_requires_reset"` when they attempt to change an already configured currency.

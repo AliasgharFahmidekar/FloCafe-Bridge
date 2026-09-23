@@ -123,6 +123,20 @@ function getUserCount(db: ReturnType<typeof getDatabase>): number {
   return (db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number }).count;
 }
 
+type PendingCurrencyReset = { country: string; currency: string; timezone: string };
+
+function getPendingCurrencyReset(db: ReturnType<typeof getDatabase>): PendingCurrencyReset | null {
+  try {
+    const row = db.prepare("SELECT value FROM _flo_meta WHERE key = 'currency_reset_pending'").get() as { value?: string } | undefined;
+    if (!row?.value) return null;
+    const parsed = JSON.parse(row.value) as Partial<PendingCurrencyReset>;
+    if (typeof parsed.country !== 'string' || typeof parsed.currency !== 'string' || typeof parsed.timezone !== 'string') return null;
+    return { country: parsed.country, currency: parsed.currency, timezone: parsed.timezone };
+  } catch {
+    return null;
+  }
+}
+
 function normalizeEmail(email: unknown): string {
   return String(email || '').trim().toLowerCase();
 }
@@ -1014,12 +1028,14 @@ router.get('/setup/status', (_req: Request, res: Response) => {
     const db = getDatabase();
     const userCount = getUserCount(db);
     const needsSetup = userCount === 0;
+    const currencyReset = needsSetup ? getPendingCurrencyReset(db) : null;
     res.json({
       needsSetup,
       userCount,
       initialRole: INITIAL_ADMIN_ROLE,
       schemaVersion: getCurrentSchemaVersion(),
       masterPinAvailable: isMasterPinAvailable(),
+      currencyReset,
     });
   } catch (error: any) {
     console.error("[API] Internal error:", error);
@@ -1039,6 +1055,7 @@ router.post('/setup/initialize', (req: Request, res: Response) => {
     if (getUserCount(db) > 0) {
       return res.status(403).json({ error: 'Setup already complete. This endpoint is disabled.' });
     }
+    const pendingCurrencyReset = getPendingCurrencyReset(db);
 
     const {
       name,
@@ -1201,7 +1218,7 @@ router.post('/setup/initialize', (req: Request, res: Response) => {
         billing_type: billing_type || (normalizedServiceModel === 'qsr' ? 'prepaid' : 'postpaid'),
         tables_required: normalizedServiceModel === 'finedine' ? 'true' : 'false',
         service_model: normalizedServiceModel,
-        setup_profile: normalizedSetupProfile,
+        setup_profile: pendingCurrencyReset ? 'empty' : normalizedSetupProfile,
         onboarding_completed: 'true',
         // Confirm country if user explicitly selected it or differed from default.
         ...countryConfirmationPatch(resolvedCountry.code, getSettingValue('country'), req.body.country_selected),
@@ -1218,7 +1235,12 @@ router.post('/setup/initialize', (req: Request, res: Response) => {
         cloud_services_disabled_by_user: 'false',
       });
 
-      seedSetupProfile(db, normalizedSetupProfile, normalizedServiceModel, language, resolvedCountry.code);
+      if (!pendingCurrencyReset) {
+        seedSetupProfile(db, normalizedSetupProfile, normalizedServiceModel, language, resolvedCountry.code);
+      }
+      if (pendingCurrencyReset) {
+        db.prepare("DELETE FROM _flo_meta WHERE key = 'currency_reset_pending'").run();
+      }
     })();
 
     // Reload cloud sync and registration profile immediately after setup.

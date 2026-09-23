@@ -4,7 +4,9 @@
 
 This note defines one backend resolver for a store's regional identity (country, currency, number formatting, business timezone) so that every surface renders money and dates from the same answer. It is the design that PR #697 was closed in favour of, and the contract that issue #693 (locale-aware price input and CSV parsing) is re-implemented against.
 
-The rule it implements is short: **the country the owner selects at signup, and the ISO 4217 currency that follows from it, are the only source of regional truth. Everything else is derived from international conventions (CLDR via `Intl`, IANA time zones). There is no default country, no hard-coded symbol, and no override mechanism.**
+The rule it implements is short: **the country and ISO 4217 currency the owner selects at signup are the only source of regional truth. The country's native currency is recommended first, followed by a curated popular group and then all supported currencies. Everything else is derived from international conventions (CLDR via `Intl`, IANA time zones). There is no default country, no hard-coded symbol, and no override mechanism.**
+
+After setup, changing country does not change the active currency. An actual currency change is available only through the owner-only destructive reset flow because existing invoices, orders, menu prices, costs, payments, refunds, and reports cannot be reinterpreted as another currency. See `docs/business-decisions.md` for the preservation contract.
 
 ## Problem
 
@@ -65,7 +67,7 @@ Every field is derived from the selected country and currency using conventions 
 | --- | --- |
 | `country` | `getCountryByCode(settings.country)`. Missing or unknown → throw. There is no default. |
 | `locale` | `country.locale` from the profile. Never from the UI language. |
-| `currency` | `resolveTenantCurrency(settings.currency, country)` — the ISO 4217 code the wizard wrote from the country profile, or a valid code the owner later set in Business Settings. Its internal `'INR'` fallback is removed; with a known country it is unreachable anyway. |
+| `currency` | `resolveTenantCurrency(settings.currency, country)` — the ISO 4217 code the wizard wrote, or the code written by the owner-only currency-reset flow. Its internal `'INR'` fallback is removed; with a known country it is unreachable anyway. |
 | `currencySymbol` | `getCurrencySymbol(currency, locale)` — `Intl.NumberFormat(locale, { style: 'currency', currency, currencyDisplay: 'narrowSymbol' })`. The stored `currency_symbol` key is **not** an input; the key remains in the database untouched (no migration) but nothing reads it once a surface adopts the resolver. |
 | `currencyPosition` | From `Intl.NumberFormat(...).formatToParts(1)` — whether the currency part precedes the integer part. The `currencyPosition()` helper currently private to `main/server-app.ts` moves next to the resolver. |
 | `currencyFractionDigits` | `getCurrencyFractionDigits(currency)` — ISO 4217 minor units via `Intl` (keeps the existing IRR special case). |
@@ -154,7 +156,7 @@ One new suite, `tests/regional-snapshot.test.ts`, wired into `npm run test:curre
 
 ## What this design does not change
 
-- Which currency a country maps to (`COUNTRIES` in `main/countries.ts`) and the owner's ability to set a different valid ISO code in Business Settings.
+- Which currency a country recommends (`COUNTRIES` in `main/countries.ts`). Post-setup currency changes use only the destructive owner-only reset flow.
 - `business_day_start_time`. It travels with the timezone in `dayBoundsInTimezone()` but is an operational setting, not part of a store's regional identity.
 - Tax, tax packs, and anything under `main/tax-packs/` (`AGENTS.md` invariant 3).
 - Thermal, browser, and plugin-template print rendering, beyond losing their silent `'₹'` default (see the expansion rule).
