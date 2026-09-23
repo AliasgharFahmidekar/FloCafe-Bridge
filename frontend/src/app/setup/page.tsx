@@ -81,7 +81,7 @@ export default function SetupPage() {
   // Wizard language follows shared store to update translations immediately.
   const language = usePosSettingsStore((s) => s.language);
   const setStoreLanguage = usePosSettingsStore((s) => s.setLanguage);
-  const [browserLanguage] = useState<Language>(() => getBrowserLanguage());
+  const [browserLanguage, setBrowserLanguage] = useState<Language>('en');
   // No default country: regional settings come only from what the owner
   // selects here (docs/business-decisions.md, "Regional settings come from
   // signup, never from a fallback").
@@ -128,12 +128,22 @@ export default function SetupPage() {
   const passwordMeetsRequirements = form.password.length === 0 || isPasswordValid(form.password);
   const t = useTranslations('setup');
   const locale = useLocale();
+  const [mounted, setMounted] = useState(false);
+
+  // Country labels are generated from CLDR data, which can differ between the server
+  // and the browser even within the same locale. Keep the first paint deterministic
+  // and only switch to the locale-specific names after hydration.
+  const resolvedCountryLocale = mounted ? locale : 'en';
 
   useEffect(() => {
-    let mounted = true;
+    const frame = window.requestAnimationFrame(() => {
+      setMounted(true);
+      setBrowserLanguage(getBrowserLanguage());
+    });
+    let mountedFlag = true;
     api.get('/auth/setup/status')
       .then(({ data }) => {
-        if (!mounted) return;
+        if (!mountedFlag) return;
         setMasterPinAvailable(!!data.masterPinAvailable);
         // Redirect to login if setup was already completed.
         if (!data.needsSetup) {
@@ -142,11 +152,14 @@ export default function SetupPage() {
         }
       })
       .catch((err: unknown) => {
-        if (!mounted) return;
+        if (!mountedFlag) return;
         console.warn('[Setup] Failed to check setup status:', err);
         setMasterPinAvailable(false);
       });
-    return () => { mounted = false; };
+    return () => {
+      mountedFlag = false;
+      window.cancelAnimationFrame(frame);
+    };
     // One-time mount check — the toast uses the initial language selection.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -155,8 +168,8 @@ export default function SetupPage() {
   const languageOptions: Language[] = SELECTABLE_LANGUAGES.includes(browserLanguage)
     ? [browserLanguage, ...SELECTABLE_LANGUAGES.filter((l) => l !== browserLanguage)]
     : SELECTABLE_LANGUAGES;
-  const filteredCountries = sortCountriesByLocalizedName(COUNTRIES, locale)
-    .filter((c) => countryMatchesQuery(c, countryQuery, locale));
+  const filteredCountries = sortCountriesByLocalizedName(COUNTRIES, resolvedCountryLocale)
+    .filter((c) => countryMatchesQuery(c, countryQuery, resolvedCountryLocale));
 
   const completeSetup = () => {
     usePosSettingsStore.getState().setLanguage(language);
@@ -365,7 +378,9 @@ export default function SetupPage() {
                         }`}
                       >
                         <div>
-                          <div className="font-semibold">{getLocalizedCountryName(c.code, locale)}</div>
+                          <div className="font-semibold">
+                            {getLocalizedCountryName(c.code, resolvedCountryLocale)}
+                          </div>
                           <div className="text-xs text-muted-foreground">
                             {c.currency} · {c.taxIdLabel || t('noTaxId')} · {c.locale}
                           </div>
