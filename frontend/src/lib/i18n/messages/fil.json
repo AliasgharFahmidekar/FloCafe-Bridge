@@ -260,6 +260,11 @@
     "viewAll": "Tingnan Lahat",
     "walkIn": "Walk-in",
     "closeShift": "Isara ang araw",
+    "openShift": "Buksan ang shift",
+    "openShiftHint": "Bilangin ang cash sa drawer para simulan ang shift.",
+    "closeShiftSession": "Isara ang shift",
+    "shiftOpened": "Bukas na ang shift",
+    "shiftClosed": "Sarado na ang shift",
     "cashMovement": "Galaw sa cash",
     "exportSales": "I-export ang mga benta",
     "exportXlsx": "Excel (.xlsx)",
@@ -329,7 +334,8 @@
     "closeStepDone": "Isara",
     "xReportSales": "Mga benta ngayong araw",
     "refundsCount": "{count} refundo",
-    "ticketNoPayments": "Walang bayad sa araw na ito"
+    "ticketNoPayments": "Walang bayad sa araw na ito",
+    "shiftLoadFailed": "Hindi ma-load ang status ng shift."
   },
   "inventory": {
     "tabSupplies": "Mga Supply",
@@ -2170,6 +2176,8 @@
       "paymentMethodsView": "Tingnan ang mga paraan ng pagbabayad",
       "paymentMethodsManage": "Pamahalaan ang mga paraan ng pagbabayad",
       "printing": "Mag-print ng mga bill at kitchen ticket",
+      "shiftOpen": "Magbukas ng cash shift",
+      "shiftClose": "Isara ang sariling shift (maaaring isara ng owner/manager ang lahat)",
       "customersViewCreate": "Tingnan, maghanap, at gumawa ng mga customer",
       "customersEdit": "I-edit ang mga customer",
       "customerMaintenance": "Ayusin ang mga talaan ng telepono ng customer",

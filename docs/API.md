@@ -1219,11 +1219,14 @@ Live day report (cierre de caja, issue #649). Recomputes the day's aggregates on
 
 The per-method `count` is the row count in the UNION'd `paymentMethodBreakdown` view (paid payment lines **plus** refund lines as negative-amount rows — paymentMethodBreakdown UNION semantics, same as `financial-summary`). UI labels that derive "N payments" from these counts therefore include the day's refund lines in the total; use `refundCount` to subtract.
 
-The canonical "cash" identity is the literal `method === 'cash'` filter — custom payment-method names are not joined into the cash-only expected figure.
+Day-close expected cash uses the literal `method === 'cash'` filter — custom payment-method names are not joined into the day's cash-only expected figure.
 
-**Convention — paid bills survive cancellation.** A paid bill counts toward the day's aggregates (`paymentMethods`, `taxComponents`, `grossCollected`, `staffSales`) even when its order is later cancelled: the cash left in the drawer is real, and the X uses the same aggregator the Z uses at close. Note this is **broader** than the live `/api/reports/tax-components` endpoint, which excludes cancelled orders (`main/routes/reports.ts:255-262`); the X intentionally follows the Z's drawer-reality convention so the live and stored views of the same day agree. Refunds recorded against a paid bill reverse the cash via the refunds UNION in `paymentMethodBreakdown`.
+**Convention - session cash attribution.** Session live expected cash and session Z use the effective shift-gate cash classifier: exact `cash` case-insensitively plus an active custom method resolving to `Cash`. Session Z movement, collected/refunded, and payment-method totals prefer explicit `cash_session_id` ownership; pre-v91 NULL-owner rows fall back to timestamp windows. New transactions outside a shift use session ID 0 so they cannot enter a later shift through that fallback. Session and day reports may coexist but are not additive; day close remains settlement-based and uses its narrower built-in `cash` rule.
 
-**Convention — staff and tax sections follow the paid day.** The X and Z key `staffSales` and `taxComponents` by `b.paid_at` (the day cash was collected) so every section of the immutable Z reconciles to the same window as `grossCollected`, `paymentMethods`, and `expectedCashCents`. On a cross-midnight day (order created Day 1, paid Day 2), staff revenue and tax components land in Day 2's snapshot. This **differs** from `/api/reports/insights` (`topStaff`, keyed by `orders.created_at`) and `/api/reports/tax-components` (keyed by `bills.created_at`) on cross-midnight days; the divergence is intentional — the Z must be internally reconcilable, while those live views prioritize the order's creation day. `staffSales[].orderCount` counts paid bills (not orders), so split checks multiply it; `/api/reports/insights` `topStaff.orderCount` counts orders instead.
+**Convention — paid bills survive cancellation.**
+ A paid bill counts toward the day's aggregates (`paymentMethods`, `taxComponents`, `grossCollected`, `staffSales`) even when its order is later cancelled: the cash left in the drawer is real, and the X uses the same aggregator the day Z uses at close. Note this is **broader** than the live `/api/reports/tax-components` endpoint, which excludes cancelled orders (`main/routes/reports.ts:255-262`); the X intentionally follows the day Z's drawer-reality convention so the live and stored views of the same day agree. Refunds recorded against a paid bill reverse the cash via the refunds UNION in `paymentMethodBreakdown`.
+
+**Convention - staff and tax sections follow settlement.** Day X/Z and session Z key `staffSales` and `taxComponents` by `b.paid_at`. On a cross-midnight day (order created Day 1, paid Day 2), staff revenue and tax components land in Day 2's snapshot. Session Z cash, collected/refunded, and payment-method totals instead follow session ownership, so a partial tender appears in those totals before its bill settles; staff and tax sections appear when the bill settles. This **differs** from `/api/reports/insights` (`topStaff`, keyed by `orders.created_at`) and `/api/reports/tax-components` (keyed by `bills.created_at`) on cross-midnight days. `staffSales[].orderCount` counts paid bills (not orders), so split checks multiply it; `/api/reports/insights` `topStaff.orderCount` counts orders instead.
 
 ---
 
@@ -1466,7 +1469,7 @@ expected_cash_cents = opening_float_cents
 variance_cents      = counted_cash_cents − expected_cash_cents
 ```
 
-The canonical "cash" identity is the literal `method === 'cash'` filter — custom payment-method names are not joined into the cash-only expected figure. Refunds are attributed by `refunds.created_at` for the drawer-reality split; display totals attribute refunds to the original bill's `paid_at` (matching `financial-summary`).
+Day-close expected cash uses the literal `method === 'cash'` filter — custom payment-method names are not joined into the day's cash-only expected figure. Refunds are attributed by `refunds.created_at` for the drawer-reality split; display totals attribute refunds to the original bill's `paid_at` (matching `financial-summary`). Session Z expected cash instead uses the session attribution rules above.
 
 **Response (201):**
 ```json
@@ -1539,11 +1542,11 @@ A concurrent winner of a double-`POST` race still returns 409 — the partial un
 
 Dispatch the stored Z to the default receipt printer. The forced drawer pulse is appended server-side (bypassing bill-bound `shouldPulseForPayment`, which can never fire for a bill-less Z) and is **not** filtered through `cash_drawer_pulse_methods`: the Z is the document the merchant prints while counting the drawer. The stored row is never mutated by printing.
 
-**Role:** owner (manager / cashier / server → 403)
+**Role:** owner, manager, or cashier for `scope='session'` rows; owner only for `scope='day'` rows (server / chef → 403)
 
-**Headers:** `Authorization: Bearer <owner-token>`
+**Headers:** `Authorization: Bearer <owner-manager-or-cashier-token>` (owner token required for day-close rows)
 
-**Path params:** `:id` — positive integer, the `cash_closures.id` returned by `POST /api/cash-closures` or `GET /api/reports/z-report`.
+**Path params:** `:id` — positive integer, the `cash_closures.id` returned by `POST /api/cash-closures`, `GET /api/reports/z-report`, or a session close response.
 
 **Request:**
 ```json
