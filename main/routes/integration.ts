@@ -234,7 +234,7 @@ integrationRoutes.post('/orders', integrationActor, (req, res, next) => {
     req.body = { ...body, external_order_id: externalOrderId, customer_id: customerId };
     if (!originalIdempotencyKey) req.headers['idempotency-key'] = `wordpress:${externalOrderId}`;
     req.url = '/';
-    orderRoutes.handle(req, res, (err?: any) => {
+    (orderRoutes as any).handle(req, res, (err?: any) => {
       req.body = originalBody;
       req.url = originalUrl;
       if (originalIdempotencyKey) req.headers['idempotency-key'] = originalIdempotencyKey; else delete req.headers['idempotency-key'];
@@ -270,7 +270,7 @@ integrationRoutes.post('/orders/:id/cancel', integrationActor, (req, res, next) 
   const originalUrl = req.url;
   req.url = `/${id}/status`;
   (req as any).body = { ...(req.body || {}), status: 'cancelled' };
-  orderRoutes.handle(req, res, (err?: any) => {
+  (orderRoutes as any).handle(req, res, (err?: any) => {
     req.url = originalUrl;
     next(err);
   });
