@@ -1,9 +1,11 @@
 import { Router, Request, Response } from 'express';
 import * as crypto from 'crypto';
+import { randomUUID } from 'crypto';
 import { getDatabase, getSettingValue, upsertSettings, parseRowJson, attachEffectiveAddons } from '../db';
 import { orderRoutes } from './orders';
 import { validateProductQuantity } from './orders-validation';
 import { resolveInventoryDeduction } from '../services/inventory';
+import { parsePhoneE164, stripPhoneDigits } from '../lib/phone';
 
 export const integrationRoutes = Router();
 
@@ -87,6 +89,71 @@ integrationRoutes.get('/catalog/changes', (req, res) => {
   res.json({ after_revision: afterRevision, revision: currentRevision, has_more: (changes as any[]).length === 500, changes });
 });
 
+
+function resolveIntegrationCustomer(db: ReturnType<typeof getDatabase>, body: any): string | null {
+  const customer = body?.customer && typeof body.customer === 'object' ? body.customer : {};
+  const billing = body?.billing && typeof body.billing === 'object' ? body.billing : {};
+  const shipping = body?.shipping && typeof body.shipping === 'object' ? body.shipping : {};
+
+  const explicit = typeof body?.customer_id === 'string' ? body.customer_id.trim() : '';
+  if (explicit && explicit.startsWith('cust-')) {
+    const existing = db.prepare('SELECT id FROM customers WHERE id = ? AND is_active = 1').get(explicit) as { id: string } | undefined;
+    if (existing) return String(existing.id);
+  }
+
+  const phoneInput = String(customer.phone || billing.phone || shipping.phone || '').trim();
+  const countryHint = String(billing.country || shipping.country || getSettingValue('country') || '').trim();
+  let phone: string | null = null;
+  let countryCode: string | null = null;
+  let phoneDigits = '';
+
+  if (phoneInput) {
+    const parsed = parsePhoneE164(phoneInput, countryHint);
+    if (!parsed) throw Object.assign(new Error('Customer phone number is invalid'), { statusCode: 422 });
+    phone = parsed.e164;
+    countryCode = parsed.countryCode;
+    phoneDigits = stripPhoneDigits(phone);
+  }
+
+  const email = String(customer.email || billing.email || '').trim().toLowerCase();
+  const fullName = String(
+    customer.name ||
+    [customer.first_name, customer.last_name].filter(Boolean).join(' ') ||
+    [billing.first_name, billing.last_name].filter(Boolean).join(' ') ||
+    [shipping.first_name, shipping.last_name].filter(Boolean).join(' ') ||
+    'Online customer'
+  ).trim();
+
+  let existing: any = null;
+  if (phoneDigits) existing = db.prepare('SELECT * FROM customers WHERE phone_digits = ? LIMIT 1').get(phoneDigits);
+  if (!existing && email) existing = db.prepare('SELECT * FROM customers WHERE LOWER(email) = ? ORDER BY is_active DESC, created_at ASC, id ASC LIMIT 1').get(email);
+
+  const addressParts = [
+    billing.address_1 || shipping.address_1,
+    billing.address_2 || shipping.address_2,
+    billing.city || shipping.city,
+    billing.state || shipping.state,
+    billing.postcode || shipping.postcode,
+    billing.country || shipping.country,
+  ].filter(Boolean);
+  const address = addressParts.join(', ') || null;
+
+  if (existing) {
+    db.prepare('UPDATE customers SET name=?, email=?, phone=?, country_code=?, address=?, is_active=1, updated_at=? WHERE id=?')
+      .run(fullName, email || existing.email || null, phone || existing.phone || null, countryCode || existing.country_code || null, address || existing.address || null, new Date().toISOString(), existing.id);
+    return String(existing.id);
+  }
+
+  const externalId = typeof body?.external_order_id === 'string' ? body.external_order_id.trim() : '';
+  const id = externalId
+    ? 'cust-online-' + crypto.createHash('sha256').update('wordpress:' + externalId).digest('hex').slice(0, 32)
+    : 'cust-' + randomUUID();
+
+  db.prepare('INSERT INTO customers (id, name, email, phone, country_code, address, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(id, fullName, email || null, phone, countryCode, address, new Date().toISOString(), new Date().toISOString());
+  return id;
+}
+
 function integrationActor(req: Request, res: Response, next: () => void): void {
   const db = getDatabase();
   const configured = process.env.FLOCAFE_INTEGRATION_USER_ID?.trim();
@@ -144,8 +211,13 @@ integrationRoutes.post('/orders', integrationActor, (req, res, next) => {
     res.status(400).json({ error: 'external_order_id is required' });
     return;
   }
+  const externalOrderId = body.external_order_id.trim();
+  if (externalOrderId.length > 100) {
+    res.status(422).json({ error: 'external_order_id must be at most 100 characters' });
+    return;
+  }
 
-  const existing = getDatabase().prepare("SELECT id FROM orders WHERE online_platform = 'wordpress' AND external_order_id = ?").get(body.external_order_id.trim()) as { id: string } | undefined;
+  const existing = getDatabase().prepare("SELECT id FROM orders WHERE online_platform = 'wordpress' AND external_order_id = ?").get(externalOrderId) as { id: string } | undefined;
   if (existing) {
     const db = getDatabase();
     const order = parseRowJson(db.prepare('SELECT * FROM orders WHERE id = ?').get(existing.id)) as any;
@@ -154,19 +226,27 @@ integrationRoutes.post('/orders', integrationActor, (req, res, next) => {
     return;
   }
 
-  const originalUrl = req.url;
-  req.url = '/';
-  orderRoutes.handle(req, res, (err?: any) => {
-    req.url = originalUrl;
-    next(err);
-  });
+  try {
+    const customerId = resolveIntegrationCustomer(getDatabase(), { ...body, external_order_id: externalOrderId });
+    const originalBody = req.body;
+    const originalUrl = req.url;
+    req.body = { ...body, external_order_id: externalOrderId, customer_id: customerId };
+    req.url = '/';
+    orderRoutes.handle(req, res, (err?: any) => {
+      req.body = originalBody;
+      req.url = originalUrl;
+      next(err);
+    });
+  } catch (error: any) {
+    res.status(error.statusCode || 422).json({ error: error.message || 'Unable to resolve integration customer' });
+  }
 });
 
 integrationRoutes.get('/orders/changes', (req, res) => {
   const db = getDatabase();
   const afterRevision = Math.max(0, Number(req.query.after_revision || 0));
   const currentRevision = Number((db.prepare('SELECT revision FROM integration_order_state WHERE id = 1').get() as any)?.revision || 0);
-  const changes = db.prepare("SELECT c.revision, c.order_id, c.status, c.changed_at FROM integration_order_changes c JOIN orders o ON o.id = c.order_id WHERE c.revision > ? AND o.online_platform = 'wordpress' ORDER BY c.revision ASC LIMIT 500").all(afterRevision);
+  const changes = db.prepare("SELECT c.revision, c.order_id, o.external_order_id, c.status, c.changed_at FROM integration_order_changes c JOIN orders o ON o.id = c.order_id WHERE c.revision > ? AND o.online_platform = 'wordpress' ORDER BY c.revision ASC LIMIT 500").all(afterRevision);
   res.json({ after_revision: afterRevision, revision: currentRevision, has_more: (changes as any[]).length === 500, changes });
 });
 
