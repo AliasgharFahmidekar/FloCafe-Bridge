@@ -5254,6 +5254,8 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
     version: 94,
     name: 'add_wordpress_integration_order_sync',
     up: () => {
+      insertSettingIfMissing('online_ordering_enabled', 'true');
+      insertSettingIfMissing('online_ordering_open', 'true');
       db.exec(`
         CREATE UNIQUE INDEX IF NOT EXISTS uq_orders_online_external_id
         ON orders(online_platform, external_order_id)
