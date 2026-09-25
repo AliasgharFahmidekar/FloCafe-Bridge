@@ -5212,6 +5212,7 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
         END;
       `);
     },
+  },
   {
     version: 93,
     name: 'add_wordpress_integration_catalog_state',
