@@ -38,6 +38,7 @@ import { printTemplateRoutes } from './print-templates';
 import { whatsappRoutes } from './whatsapp';
 import { supportTicketRoutes } from './support-ticket';
 import { diagnosticsRoutes } from './diagnostics';
+import { integrationRoutes } from './integration';
 import { getDatabase, now, parseItemJson, attachEffectiveAddons, withTxn, getSettingValue, getCachedPairingCode, setCachedPairingCode, verifyPin, recordOrderAudit } from '../db';
 import { checkPinRateLimit } from './orders';
 import { getCurrencyFractionDigits, getCurrencyMinorUnitFactor } from '../countries';
@@ -119,6 +120,7 @@ export function registerRoutes(app: Express): void {
   app.use('/api/whatsapp', whatsappRoutes);
   app.use('/api/support-ticket', supportTicketRoutes);
   app.use('/api/diagnostics', diagnosticsRoutes);
+  app.use('/api/integration', integrationRoutes);
 
   // Tax preview
   app.post('/api/tax/preview', asyncHandler(async (req, res) => {
