@@ -162,20 +162,21 @@ integrationRoutes.post('/orders', integrationActor, (req, res, next) => {
   });
 });
 
-integrationRoutes.get('/orders/:id', (req, res) => {
-  const db = getDatabase();
-  const order = parseRowJson(db.prepare("SELECT * FROM orders WHERE id = ? AND online_platform = 'wordpress'").get(req.params.id)) as any;
-  if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
-  const items = attachEffectiveAddons(db, db.prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id').all(req.params.id).map(parseRowJson) as any[]);
-  res.json({ order: { ...order, items } });
-});
-
 integrationRoutes.get('/orders/changes', (req, res) => {
   const db = getDatabase();
   const afterRevision = Math.max(0, Number(req.query.after_revision || 0));
   const currentRevision = Number((db.prepare('SELECT revision FROM integration_order_state WHERE id = 1').get() as any)?.revision || 0);
   const changes = db.prepare("SELECT c.revision, c.order_id, c.status, c.changed_at FROM integration_order_changes c JOIN orders o ON o.id = c.order_id WHERE c.revision > ? AND o.online_platform = 'wordpress' ORDER BY c.revision ASC LIMIT 500").all(afterRevision);
   res.json({ after_revision: afterRevision, revision: currentRevision, has_more: (changes as any[]).length === 500, changes });
+});
+
+
+integrationRoutes.get('/orders/:id', (req, res) => {
+  const db = getDatabase();
+  const order = parseRowJson(db.prepare("SELECT * FROM orders WHERE id = ? AND online_platform = 'wordpress'").get(req.params.id)) as any;
+  if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+  const items = attachEffectiveAddons(db, db.prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id').all(req.params.id).map(parseRowJson) as any[]);
+  res.json({ order: { ...order, items } });
 });
 
 integrationRoutes.post('/orders/:id/cancel', integrationActor, (req, res, next) => {
