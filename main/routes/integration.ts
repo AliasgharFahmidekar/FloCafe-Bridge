@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { getDatabase, getSettingValue, parseRowJson, attachEffectiveAddons } from '../db';
 import { orderRoutes } from './orders';
+import { validateProductQuantity } from './orders-validation';
+import { resolveInventoryDeduction } from '../services/inventory';
 
 export const integrationRoutes = Router();
 
