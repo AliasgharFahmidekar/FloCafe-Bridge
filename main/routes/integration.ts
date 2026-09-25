@@ -45,7 +45,7 @@ function readStoreStatus() {
 function readCatalog() {
   const db = getDatabase();
   const revision = getCatalogRevision(db);
-  const categories = db.prepare(`SELECT id, name, description, image_url, sort_order, parent_id, slug, color, icon, is_active FROM categories WHERE deleted_at IS NULL AND is_active = 1 ORDER BY sort_order ASC, name ASC`).all() as any[];
+  const categories = db.prepare(`SELECT id, name, description, image_url, sort_order, parent_id, slug, color, icon, is_active FROM categories WHERE deleted_at IS NULL ORDER BY sort_order ASC, name ASC`).all() as any[];
   const products = db.prepare(`SELECT id, category_id, name, description, price, sku, sale_unit, image_url, sort_order, is_active, tags FROM products WHERE deleted_at IS NULL ORDER BY sort_order ASC, name ASC`).all() as any[];
   return {
     revision,
@@ -158,7 +158,7 @@ function integrationActor(req: Request, res: Response, next: () => void): void {
   const db = getDatabase();
   const configured = process.env.FLOCAFE_INTEGRATION_USER_ID?.trim();
   const actor = configured
-    ? db.prepare('SELECT id, role, is_active FROM users WHERE id = ?').get(configured) as any
+    ? db.prepare("SELECT id, role, is_active FROM users WHERE id = ? AND role IN ('owner','manager')").get(configured) as any
     : db.prepare("SELECT id, role, is_active FROM users WHERE is_active = 1 AND role IN ('owner','manager') ORDER BY CASE role WHEN 'owner' THEN 0 ELSE 1 END LIMIT 1").get() as any;
   if (!actor || actor.is_active !== 1) {
     res.status(503).json({ error: 'No active FloCafe integration actor is configured' });
@@ -230,11 +230,14 @@ integrationRoutes.post('/orders', integrationActor, (req, res, next) => {
     const customerId = resolveIntegrationCustomer(getDatabase(), { ...body, external_order_id: externalOrderId });
     const originalBody = req.body;
     const originalUrl = req.url;
+    const originalIdempotencyKey = req.get('Idempotency-Key');
     req.body = { ...body, external_order_id: externalOrderId, customer_id: customerId };
+    if (!originalIdempotencyKey) req.headers['idempotency-key'] = `wordpress:${externalOrderId}`;
     req.url = '/';
     orderRoutes.handle(req, res, (err?: any) => {
       req.body = originalBody;
       req.url = originalUrl;
+      if (originalIdempotencyKey) req.headers['idempotency-key'] = originalIdempotencyKey; else delete req.headers['idempotency-key'];
       next(err);
     });
   } catch (error: any) {
