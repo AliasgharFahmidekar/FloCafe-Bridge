@@ -5197,6 +5197,60 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
     },
   },
   {
+    version: 93,
+    name: 'add_wordpress_integration_catalog_state',
+    up: () => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS integration_catalog_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          revision INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL
+        );
+        INSERT OR IGNORE INTO integration_catalog_state (id, revision, updated_at)
+        VALUES (1, 0, CURRENT_TIMESTAMP);
+        CREATE TABLE IF NOT EXISTS integration_catalog_changes (
+          revision INTEGER PRIMARY KEY,
+          entity_type TEXT NOT NULL CHECK (entity_type IN ('category', 'product')),
+          entity_id TEXT NOT NULL,
+          action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+          changed_at TEXT NOT NULL
+        );
+      `);
+      db.exec(`
+        CREATE TRIGGER IF NOT EXISTS integration_categories_insert AFTER INSERT ON categories BEGIN
+          UPDATE integration_catalog_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
+          INSERT INTO integration_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'category', CAST(NEW.id AS TEXT), 'created', CURRENT_TIMESTAMP FROM integration_catalog_state WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS integration_categories_update AFTER UPDATE ON categories BEGIN
+          UPDATE integration_catalog_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
+          INSERT INTO integration_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'category', CAST(NEW.id AS TEXT), 'updated', CURRENT_TIMESTAMP FROM integration_catalog_state WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS integration_categories_delete AFTER DELETE ON categories BEGIN
+          UPDATE integration_catalog_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
+          INSERT INTO integration_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'category', CAST(OLD.id AS TEXT), 'deleted', CURRENT_TIMESTAMP FROM integration_catalog_state WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS integration_products_insert AFTER INSERT ON products BEGIN
+          UPDATE integration_catalog_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
+          INSERT INTO integration_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'product', CAST(NEW.id AS TEXT), 'created', CURRENT_TIMESTAMP FROM integration_catalog_state WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS integration_products_update AFTER UPDATE ON products BEGIN
+          UPDATE integration_catalog_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
+          INSERT INTO integration_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'product', CAST(NEW.id AS TEXT), 'updated', CURRENT_TIMESTAMP FROM integration_catalog_state WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS integration_products_delete AFTER DELETE ON products BEGIN
+          UPDATE integration_catalog_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
+          INSERT INTO integration_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'product', CAST(OLD.id AS TEXT), 'deleted', CURRENT_TIMESTAMP FROM integration_catalog_state WHERE id = 1;
+        END;
+      `);
+    },
+  },
+  {
     version: 92,
     name: 'add_table_reservation_customer',
     up: () => {
