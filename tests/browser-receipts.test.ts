@@ -74,7 +74,7 @@ async function run() {
 
   // #375: prime the shared locale cache so synchronous t() resolves the
   // on-demand bundles in this test process.
-  for (const lang of ['en', 'es', 'fr', 'pt', 'fa', 'it', 'ja', 'zh', 'zh-tw', 'ko', 'id', 'nl', 'hi', 'bn', 'sq', 'vi'] as const) {
+  for (const lang of ['en', 'es', 'fr', 'pt', 'fa', 'ur', 'it', 'ja', 'zh', 'zh-tw', 'ko', 'id', 'nl', 'hi', 'bn', 'sq', 'vi'] as const) {
     await i18n.loadLocaleMessages(lang);
   }
 
@@ -364,6 +364,22 @@ async function run() {
       ptHtml.includes('Obrigado pela sua visita!')
     );
 
+    // Urdu
+    const urTenant = {
+      business_name: 'Flo Cafe Lahore',
+      currency: 'PKR',
+      country: 'PK',
+      timezone: 'Asia/Karachi',
+    };
+    const urHtml = generateBillHtml(sampleEnBill, urTenant, { language: 'ur', isReprint: true });
+    assert('UR receipt has lang="ur-PK" and dir="rtl"', urHtml.includes('<html lang="ur-PK" dir="rtl">'));
+    assert('UR labels are Urdu',
+      urHtml.includes('دوبارہ پرنٹ') &&
+      urHtml.includes('بل #') &&
+      urHtml.includes('کل رقم') &&
+      urHtml.includes('آپ کے تشریف لانے کا شکریہ!')
+    );
+
     const hiTenant = {
       business_name: 'FloCafe Delhi',
       currency: 'INR',
@@ -471,13 +487,13 @@ async function run() {
 
     const urduSlip = generateOrderSlipHtml(testIranOrder, {
       title: 'آرڈر سلپ',
-      subtotal: 'ذیلی میزان',
+      subtotal: 'ذیلی رقم',
       discount: 'رعایت',
-      serviceCharge: 'خدمت فیس',
-      deliveryCharge: 'ترسیل فیس',
-      packagingCharge: 'پیکنگ فیس',
+      serviceCharge: 'سروس چارج',
+      deliveryCharge: 'ڈیلیوری چارج',
+      packagingCharge: 'پیکنگ چارج',
       tax: 'ٹیکس',
-      total: 'کل',
+      total: 'کل رقم',
     }, {
       paperWidth: 80,
       country: 'PK',
@@ -489,7 +505,8 @@ async function run() {
       urduSlip.includes('lang="ur-PK" dir="rtl"') &&
       urduSlip.includes('direction:rtl;text-align:right;') &&
       urduSlip.includes('آرڈر سلپ') &&
-      urduSlip.includes('کل') &&
+      urduSlip.includes('ذیلی رقم') &&
+      urduSlip.includes('کل رقم') &&
       !urduSlip.includes('<script>'),
     );
 
