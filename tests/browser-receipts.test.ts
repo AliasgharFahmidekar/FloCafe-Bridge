@@ -74,7 +74,7 @@ async function run() {
 
   // #375: prime the shared locale cache so synchronous t() resolves the
   // on-demand bundles in this test process.
-  for (const lang of ['en', 'es', 'fr', 'pt', 'fa', 'it', 'ja', 'zh', 'zh-tw', 'ko', 'id', 'nl', 'hi', 'bn', 'sq'] as const) {
+  for (const lang of ['en', 'es', 'fr', 'pt', 'fa', 'it', 'ja', 'zh', 'zh-tw', 'ko', 'id', 'nl', 'hi', 'bn', 'sq', 'vi'] as const) {
     await i18n.loadLocaleMessages(lang);
   }
 
@@ -575,6 +575,29 @@ async function run() {
       albanianSlip.includes('Fletë porosie') &&
       albanianSlip.includes('Nëntotali') &&
       albanianSlip.includes('Totali'),
+    );
+
+    const vietnameseSlip = generateOrderSlipHtml(testIranOrder, {
+      title: 'Phiếu đơn hàng',
+      subtotal: 'Tạm tính',
+      discount: 'Giảm giá',
+      serviceCharge: 'Phí dịch vụ',
+      deliveryCharge: 'Phí giao hàng',
+      packagingCharge: 'Phí đóng gói',
+      tax: 'Thuế',
+      total: 'Tổng cộng',
+    }, {
+      country: 'VN',
+      currency: 'VND',
+      locale: 'vi-VN',
+      direction: 'ltr',
+    });
+    assert('Vietnamese order slip carries vi-VN LTR metadata and stacked diacritics',
+      vietnameseSlip.includes('lang="vi-VN" dir="ltr"') &&
+      vietnameseSlip.includes('direction:ltr;text-align:left;') &&
+      vietnameseSlip.includes('Phiếu đơn hàng') &&
+      vietnameseSlip.includes('Tạm tính') &&
+      vietnameseSlip.includes('Tổng cộng'),
     );
   }
 
