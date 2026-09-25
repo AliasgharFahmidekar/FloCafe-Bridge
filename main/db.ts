@@ -5197,51 +5197,6 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
     },
   },
   {
-    version: 94,
-    name: 'add_wordpress_integration_order_sync',
-    up: () => {
-      db.exec(`
-        CREATE UNIQUE INDEX IF NOT EXISTS uq_orders_online_external_id
-        ON orders(online_platform, external_order_id)
-        WHERE online_platform IS NOT NULL AND external_order_id IS NOT NULL;
-
-        CREATE TABLE IF NOT EXISTS integration_order_state (
-          id INTEGER PRIMARY KEY CHECK (id = 1),
-          revision INTEGER NOT NULL DEFAULT 0,
-          updated_at TEXT NOT NULL
-        );
-        INSERT OR IGNORE INTO integration_order_state (id, revision, updated_at)
-        VALUES (1, 0, CURRENT_TIMESTAMP);
-
-        CREATE TABLE IF NOT EXISTS integration_order_changes (
-          revision INTEGER PRIMARY KEY,
-          order_id INTEGER NOT NULL,
-          status TEXT NOT NULL,
-          changed_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS idx_integration_order_changes_order
-          ON integration_order_changes(order_id, revision);
-      `);
-      db.exec(`
-        CREATE TRIGGER IF NOT EXISTS integration_orders_insert
-        AFTER INSERT ON orders
-        BEGIN
-          UPDATE integration_order_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
-          INSERT INTO integration_order_changes(revision, order_id, status, changed_at)
-          SELECT revision, NEW.id, NEW.status, CURRENT_TIMESTAMP FROM integration_order_state WHERE id = 1;
-        END;
-        CREATE TRIGGER IF NOT EXISTS integration_orders_status_update
-        AFTER UPDATE OF status ON orders
-        WHEN OLD.status IS NOT NEW.status
-        BEGIN
-          UPDATE integration_order_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
-          INSERT INTO integration_order_changes(revision, order_id, status, changed_at)
-          SELECT revision, NEW.id, NEW.status, CURRENT_TIMESTAMP FROM integration_order_state WHERE id = 1;
-        END;
-      `);
-    },
-  },
-  {
     version: 93,
     name: 'add_wordpress_integration_catalog_state',
     up: () => {
@@ -5291,6 +5246,51 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
           UPDATE integration_catalog_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
           INSERT INTO integration_catalog_changes(revision, entity_type, entity_id, action, changed_at)
           SELECT revision, 'product', CAST(OLD.id AS TEXT), 'deleted', CURRENT_TIMESTAMP FROM integration_catalog_state WHERE id = 1;
+        END;
+      `);
+    },
+  },
+  {
+    version: 94,
+    name: 'add_wordpress_integration_order_sync',
+    up: () => {
+      db.exec(`
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_orders_online_external_id
+        ON orders(online_platform, external_order_id)
+        WHERE online_platform IS NOT NULL AND external_order_id IS NOT NULL;
+
+        CREATE TABLE IF NOT EXISTS integration_order_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          revision INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL
+        );
+        INSERT OR IGNORE INTO integration_order_state (id, revision, updated_at)
+        VALUES (1, 0, CURRENT_TIMESTAMP);
+
+        CREATE TABLE IF NOT EXISTS integration_order_changes (
+          revision INTEGER PRIMARY KEY,
+          order_id INTEGER NOT NULL,
+          status TEXT NOT NULL,
+          changed_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_integration_order_changes_order
+          ON integration_order_changes(order_id, revision);
+      `);
+      db.exec(`
+        CREATE TRIGGER IF NOT EXISTS integration_orders_insert
+        AFTER INSERT ON orders
+        BEGIN
+          UPDATE integration_order_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
+          INSERT INTO integration_order_changes(revision, order_id, status, changed_at)
+          SELECT revision, NEW.id, NEW.status, CURRENT_TIMESTAMP FROM integration_order_state WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS integration_orders_status_update
+        AFTER UPDATE OF status ON orders
+        WHEN OLD.status IS NOT NEW.status
+        BEGIN
+          UPDATE integration_order_state SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1;
+          INSERT INTO integration_order_changes(revision, order_id, status, changed_at)
+          SELECT revision, NEW.id, NEW.status, CURRENT_TIMESTAMP FROM integration_order_state WHERE id = 1;
         END;
       `);
     },
