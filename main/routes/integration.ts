@@ -87,4 +87,109 @@ integrationRoutes.get('/catalog/changes', (req, res) => {
   res.json({ after_revision: afterRevision, revision: currentRevision, has_more: (changes as any[]).length === 500, changes });
 });
 
+function integrationActor(req: Request, res: Response, next: () => void): void {
+  const db = getDatabase();
+  const configured = process.env.FLOCAFE_INTEGRATION_USER_ID?.trim();
+  const actor = configured
+    ? db.prepare('SELECT id, role, is_active FROM users WHERE id = ?').get(configured) as any
+    : db.prepare("SELECT id, role, is_active FROM users WHERE is_active = 1 AND role IN ('owner','manager') ORDER BY CASE role WHEN 'owner' THEN 0 ELSE 1 END LIMIT 1").get() as any;
+  if (!actor || actor.is_active !== 1) {
+    res.status(503).json({ error: 'No active FloCafe integration actor is configured' });
+    return;
+  }
+  (req as any).user = { userId: String(actor.id), role: actor.role };
+  next();
+}
+
+integrationRoutes.post('/orders/quote', (req, res) => {
+  try {
+    const items = req.body?.items;
+    if (!Array.isArray(items) || items.length === 0) { res.status(400).json({ error: 'At least one item is required' }); return; }
+    if (items.length > 100) { res.status(400).json({ error: 'Too many items' }); return; }
+    const db = getDatabase();
+    let subtotal = 0;
+    const quotedItems = items.map((item: any) => {
+      const product = db.prepare('SELECT id, name, sku, price, is_active, deleted_at, sale_unit, allow_fractional_quantity, weight_precision FROM products WHERE id = ?').get(item?.product_id) as any;
+      if (!product || product.deleted_at || product.is_active !== 1) throw Object.assign(new Error(`Product ${item?.product_id} is unavailable`), { statusCode: 409 });
+      validateProductQuantity(product, item?.quantity);
+      const deduction = resolveInventoryDeduction(product, item.quantity);
+      if (deduction && deduction.deductedQuantity < item.quantity) throw Object.assign(new Error(`Insufficient availability for ${product.name}`), { statusCode: 409 });
+      const unitPrice = Number(product.price);
+      const lineTotal = unitPrice * Number(item.quantity);
+      subtotal += lineTotal;
+      return { product_id: String(product.id), name: product.name, sku: product.sku ?? null, quantity: item.quantity, unit_price: unitPrice, line_total: lineTotal };
+    });
+    res.json({ valid: true, currency: getSettingValue('currency'), items: quotedItems, estimated_subtotal: subtotal, note: 'Final total is calculated by FloCafe during order creation using its current tax, charge, discount, and pricing rules.', quoted_at: new Date().toISOString() });
+  } catch (error: any) {
+    res.status(error.statusCode || 400).json({ valid: false, error: error.message || 'Unable to quote order' });
+  }
+});
+
+integrationRoutes.post('/orders', integrationActor, (req, res, next) => {
+  const body = req.body || {};
+  const store = readStoreStatus();
+  if (!store.online_ordering_enabled || !store.online_ordering_open) {
+    res.status(409).json({ error: 'Online ordering is currently closed' });
+    return;
+  }
+  if (body.type !== 'online') {
+    res.status(400).json({ error: 'Integration orders must use type=online' });
+    return;
+  }
+  if (typeof body.online_platform !== 'string' || body.online_platform.trim() !== 'wordpress') {
+    res.status(400).json({ error: 'online_platform must be wordpress' });
+    return;
+  }
+  if (typeof body.external_order_id !== 'string' || !body.external_order_id.trim()) {
+    res.status(400).json({ error: 'external_order_id is required' });
+    return;
+  }
+
+  const existing = getDatabase().prepare("SELECT id FROM orders WHERE online_platform = 'wordpress' AND external_order_id = ?").get(body.external_order_id.trim()) as { id: string } | undefined;
+  if (existing) {
+    const db = getDatabase();
+    const order = parseRowJson(db.prepare('SELECT * FROM orders WHERE id = ?').get(existing.id)) as any;
+    const items = attachEffectiveAddons(db, db.prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id').all(existing.id).map(parseRowJson) as any[]);
+    res.status(200).json({ order: { ...order, items }, idempotent_replay: true });
+    return;
+  }
+
+  const originalUrl = req.url;
+  req.url = '/';
+  orderRoutes.handle(req, res, (err?: any) => {
+    req.url = originalUrl;
+    next(err);
+  });
+});
+
+integrationRoutes.get('/orders/:id', (req, res) => {
+  const db = getDatabase();
+  const order = parseRowJson(db.prepare("SELECT * FROM orders WHERE id = ? AND online_platform = 'wordpress'").get(req.params.id)) as any;
+  if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
+  const items = attachEffectiveAddons(db, db.prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id').all(req.params.id).map(parseRowJson) as any[]);
+  res.json({ order: { ...order, items } });
+});
+
+integrationRoutes.get('/orders/changes', (req, res) => {
+  const db = getDatabase();
+  const afterRevision = Math.max(0, Number(req.query.after_revision || 0));
+  const currentRevision = Number((db.prepare('SELECT revision FROM integration_order_state WHERE id = 1').get() as any)?.revision || 0);
+  const changes = db.prepare("SELECT c.revision, c.order_id, c.status, c.changed_at FROM integration_order_changes c JOIN orders o ON o.id = c.order_id WHERE c.revision > ? AND o.online_platform = 'wordpress' ORDER BY c.revision ASC LIMIT 500").all(afterRevision);
+  res.json({ after_revision: afterRevision, revision: currentRevision, has_more: (changes as any[]).length === 500, changes });
+});
+
+integrationRoutes.post('/orders/:id/cancel', integrationActor, (req, res, next) => {
+  const id = String(req.params.id);
+  const db = getDatabase();
+  const exists = db.prepare("SELECT 1 FROM orders WHERE id = ? AND online_platform = 'wordpress'").get(id);
+  if (!exists) { res.status(404).json({ error: 'Order not found' }); return; }
+  const originalUrl = req.url;
+  req.url = `/${id}/status`;
+  (req as any).body = { ...(req.body || {}), status: 'cancelled' };
+  orderRoutes.handle(req, res, (err?: any) => {
+    req.url = originalUrl;
+    next(err);
+  });
+});
+
 export default integrationRoutes;
