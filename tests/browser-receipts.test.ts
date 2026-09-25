@@ -74,7 +74,7 @@ async function run() {
 
   // #375: prime the shared locale cache so synchronous t() resolves the
   // on-demand bundles in this test process.
-  for (const lang of ['en', 'es', 'fr', 'pt', 'fa', 'ur', 'it', 'ja', 'zh', 'zh-tw', 'ko', 'id', 'nl', 'hi', 'bn', 'sq', 'vi'] as const) {
+  for (const lang of ['en', 'es', 'fr', 'pt', 'ru', 'fa', 'ur', 'it', 'ja', 'zh', 'zh-tw', 'ko', 'id', 'nl', 'hi', 'bn', 'sq', 'vi'] as const) {
     await i18n.loadLocaleMessages(lang);
   }
 
@@ -525,6 +525,30 @@ async function run() {
     const ltrSlip = generateOrderSlipHtml(testIranOrder, orderSlipLabels, { direction: 'ltr' });
     assert('LTR order slips retain explicit left-to-right layout',
       ltrSlip.includes('dir="ltr"') && ltrSlip.includes('direction:ltr;text-align:left;'),
+    );
+
+    const russianSlip = generateOrderSlipHtml(testIranOrder, {
+      title: 'Чек заказа',
+      subtotal: 'Промежуточный итог',
+      discount: 'Скидка',
+      serviceCharge: 'Стоимость обслуживания',
+      deliveryCharge: 'Стоимость доставки',
+      packagingCharge: 'Стоимость упаковки',
+      tax: 'Налог',
+      total: 'Итого',
+    }, {
+      paperWidth: 80,
+      country: 'RU',
+      currency: 'RUB',
+      locale: 'ru-RU',
+      direction: 'ltr',
+    });
+    assert('Russian order slip carries ru-RU LTR metadata and localized labels',
+      russianSlip.includes('lang="ru-RU" dir="ltr"') &&
+      russianSlip.includes('direction:ltr;text-align:left;') &&
+      russianSlip.includes('Чек заказа') &&
+      russianSlip.includes('Промежуточный итог') &&
+      russianSlip.includes('Итого'),
     );
 
     const hindiSlip = generateOrderSlipHtml(testIranOrder, {
