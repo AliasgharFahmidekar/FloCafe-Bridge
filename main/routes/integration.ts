@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
-import { getDatabase, getSettingValue, parseRowJson, attachEffectiveAddons } from '../db';
+import { getDatabase, getSettingValue, upsertSettings, parseRowJson, attachEffectiveAddons } from '../db';
 import { orderRoutes } from './orders';
 import { validateProductQuantity } from './orders-validation';
 import { resolveInventoryDeduction } from '../services/inventory';
@@ -58,6 +58,21 @@ integrationRoutes.get('/health', (_req, res) => {
 });
 
 integrationRoutes.get('/store', (_req, res) => {
+  res.json({ ...readStoreStatus(), currency: getSettingValue('currency'), timestamp: new Date().toISOString() });
+});
+
+integrationRoutes.post('/store', (req, res) => {
+  const body = req.body || {};
+  if (body.online_ordering_enabled !== undefined && typeof body.online_ordering_enabled !== 'boolean') {
+    res.status(400).json({ error: 'online_ordering_enabled must be boolean' }); return;
+  }
+  if (body.online_ordering_open !== undefined && typeof body.online_ordering_open !== 'boolean') {
+    res.status(400).json({ error: 'online_ordering_open must be boolean' }); return;
+  }
+  upsertSettings({
+    online_ordering_enabled: body.online_ordering_enabled === undefined ? undefined : String(body.online_ordering_enabled),
+    online_ordering_open: body.online_ordering_open === undefined ? undefined : String(body.online_ordering_open),
+  });
   res.json({ ...readStoreStatus(), currency: getSettingValue('currency'), timestamp: new Date().toISOString() });
 });
 
