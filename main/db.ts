@@ -5197,6 +5197,22 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
     },
   },
   {
+    version: 92,
+    name: 'add_table_reservation_customer',
+    up: () => {
+      if (!getColumns(db, 'tables').includes('reservation_customer_id')) {
+        db.exec('ALTER TABLE tables ADD COLUMN reservation_customer_id TEXT REFERENCES customers(id) ON DELETE SET NULL');
+      }
+      db.exec(`
+        CREATE TRIGGER IF NOT EXISTS clear_table_reservation_customer_on_status_change
+        AFTER UPDATE OF status ON tables
+        WHEN NEW.status != 'reserved' AND NEW.reservation_customer_id IS NOT NULL
+        BEGIN
+          UPDATE tables SET reservation_customer_id = NULL WHERE id = NEW.id;
+        END;
+      `);
+    },
+  },  {
     version: 93,
     name: 'add_wordpress_integration_catalog_state',
     up: () => {
@@ -5297,23 +5313,7 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
       `);
     },
   },
-  {
-    version: 92,
-    name: 'add_table_reservation_customer',
-    up: () => {
-      if (!getColumns(db, 'tables').includes('reservation_customer_id')) {
-        db.exec('ALTER TABLE tables ADD COLUMN reservation_customer_id TEXT REFERENCES customers(id) ON DELETE SET NULL');
-      }
-      db.exec(`
-        CREATE TRIGGER IF NOT EXISTS clear_table_reservation_customer_on_status_change
-        AFTER UPDATE OF status ON tables
-        WHEN NEW.status != 'reserved' AND NEW.reservation_customer_id IS NOT NULL
-        BEGIN
-          UPDATE tables SET reservation_customer_id = NULL WHERE id = NEW.id;
-        END;
-      `);
-    },
-  },
+
 ];
 
 function syncBackupBeforeMigration(fromVersion: number, toVersion: number): void {
