@@ -51,3 +51,12 @@ The Bridge should:
 4. Retry transient failures using its persistent outbox.
 5. Poll `/orders/changes` and update WordPress only for meaningful online-order status changes.
 6. Never write directly to FloCafe SQLite.
+
+
+## Reliability invariants
+
+- `external_order_id` is required, max 100 characters, and is unique per `online_platform` in FloCafe.
+- Integration order creation reuses the canonical order business logic so pricing, tax, inventory, recipe, KDS and audit behavior remain centralized.
+- The Integration API resolves or creates a FloCafe customer from WordPress contact/address data; Woo customer numeric IDs are never treated as FloCafe customer IDs.
+- `GET /orders/changes` includes `external_order_id` so Bridge status reconciliation survives restart without relying only on an in-memory mapping.
+- Full catalog snapshots are the recovery path after revision gaps.
