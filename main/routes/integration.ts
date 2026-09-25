@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import { getDatabase, getSettingValue, upsertSettings, parseRowJson, attachEffectiveAddons } from '../db';
 import { orderRoutes } from './orders';
 import { validateProductQuantity } from './orders-validation';
