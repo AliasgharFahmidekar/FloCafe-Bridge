@@ -5,6 +5,7 @@ import { ROLE_ACCESS } from '../../shared/role-permissions';
 import { getHttpRequestSignal } from '../shutdown';
 import { getActiveCountryPack, hasConfiguredTaxCategories } from '../services/tax';
 import { adjustProductStock } from '../services/inventory';
+import { wordpressBridge } from '../services/wordpress-bridge';
 import * as crypto from 'crypto';
 import * as dns from 'dns';
 import * as https from 'https';
@@ -894,6 +895,7 @@ router.post('/', requireRole(...ROLE_ACCESS.ownerManager), (req: Request, res: R
     insertProduct();
 
     const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    wordpressBridge.notifyCatalogChanged();
     res.status(201).json({ product: serializeProduct(product) });
   } catch (error: any) {
     console.error("[API] Internal error:", error);
@@ -1110,6 +1112,7 @@ router.put('/:id', requireRole(...ROLE_ACCESS.ownerManager), (req: Request, res:
     updateProduct();
 
     const updated = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
+    wordpressBridge.notifyCatalogChanged();
     res.json({ product: serializeProduct(updated) });
   } catch (error: any) {
     console.error("[API] Internal error:", error);
@@ -1134,6 +1137,7 @@ router.delete('/:id', requireRole(...ROLE_ACCESS.ownerManager), (req: Request, r
     }
 
     db.prepare('UPDATE products SET deleted_at = ? WHERE id = ?').run(now(), req.params.id);
+    wordpressBridge.notifyCatalogChanged();
     res.json({ message: 'Product deleted' });
   } catch (error: any) {
     console.error("[API] Internal error:", error);
