@@ -18,15 +18,15 @@ router.put('/config', requireRole('owner', 'manager'), asyncHandler(async (req: 
   }));
 }));
 
-router.post('/test', requirePermission('settings.manage'), asyncHandler(async (req: Request, res: Response) => {
+router.post('/test', requireRole('owner', 'manager'), asyncHandler(async (req: Request, res: Response) => {
   res.json(await wordpressBridge.testConnection(getHttpRequestSignal(req)));
 }));
 
-router.post('/sync', requirePermission('settings.manage'), asyncHandler(async (req: Request, res: Response) => {
+router.post('/sync', requireRole('owner', 'manager'), asyncHandler(async (req: Request, res: Response) => {
   res.status(202).json(await wordpressBridge.syncNow(getHttpRequestSignal(req)));
 }));
 
-router.post('/disconnect', requirePermission('settings.manage'), asyncHandler(async (_req: Request, res: Response) => {
+router.post('/disconnect', requireRole('owner', 'manager'), asyncHandler(async (_req: Request, res: Response) => {
   res.json(await wordpressBridge.disconnect());
 }));
 
