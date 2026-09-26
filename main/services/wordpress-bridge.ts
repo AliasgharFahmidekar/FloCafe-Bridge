@@ -264,11 +264,16 @@ class WordPressBridgeService {
     const enabled = input.enabled === undefined ? bool(current.enabled) : bool(input.enabled);
     if (enabled && (!siteUrl || !encrypted)) throw new Error('Enter the WordPress URL and Bridge API key before enabling the connection');
 
+    const siteChanged = siteUrl !== current.site_url;
     db.prepare(`
       UPDATE wordpress_bridge_config
-      SET site_url = ?, api_key_encrypted = ?, enabled = ?, updated_at = ?
+      SET site_url = ?, api_key_encrypted = ?, enabled = ?,
+          applied_catalog_revision = CASE WHEN ? THEN 0 ELSE applied_catalog_revision END,
+          last_catalog_sync = CASE WHEN ? THEN NULL ELSE last_catalog_sync END,
+          remote_site_id = CASE WHEN ? THEN NULL ELSE remote_site_id END,
+          updated_at = ?
       WHERE id = 1
-    `).run(siteUrl, encrypted, enabled ? 1 : 0, nowIso());
+    `).run(siteUrl, encrypted, enabled ? 1 : 0, siteChanged ? 1 : 0, siteChanged ? 1 : 0, siteChanged ? 1 : 0, nowIso());
 
     this.reconfigureRuntime();
     return this.getStatus();
@@ -295,9 +300,22 @@ class WordPressBridgeService {
     this.wp.set(config.site_url, key);
     const health = await this.wp.health(signal);
     if (!health?.ok) throw new Error('WordPress Bridge health check failed');
-    this.persistRemoteSiteId(health?.site_id ? String(health.site_id) : null);
-    this.clearError();
-    return { ok: true, health };
+
+    const remoteSource = health?.source_instance_id ? String(health.source_instance_id) : '';
+    const sourceChanged = remoteSource !== config.bridge_id;
+    if (sourceChanged) {
+      const db = getDatabase();
+      db.prepare(`
+        UPDATE wordpress_bridge_config
+        SET applied_catalog_revision = 0, last_catalog_sync = NULL,
+            last_error = NULL, last_error_at = NULL, remote_site_id = ?, updated_at = ?
+        WHERE id = 1
+      `).run(health?.site_id ? String(health.site_id) : null, nowIso());
+    } else {
+      this.persistRemoteSiteId(health?.site_id ? String(health.site_id) : null);
+      this.clearError();
+    }
+    return { ok: true, health, catalog_sync_required: sourceChanged };
   }
 
   async syncNow(signal?: AbortSignal): Promise<any> {
