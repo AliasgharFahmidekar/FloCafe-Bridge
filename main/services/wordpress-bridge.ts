@@ -192,10 +192,10 @@ class WordPressBridgeService {
     void this.safeRun('startup', async () => {
       const config = this.readConfig();
       if (!config.enabled || !this.isConfigured(config)) return;
+      await this.sendHeartbeat();
       await this.syncCatalog();
       await this.pollOrders();
       await this.pollOrderStatuses();
-      await this.sendHeartbeat();
     });
   }
 
@@ -321,6 +321,7 @@ class WordPressBridgeService {
   async syncNow(signal?: AbortSignal): Promise<any> {
     const config = this.readConfig();
     if (!this.isConfigured(config)) throw new Error('WordPress connection is not configured');
+    await this.sendHeartbeat(signal);
     const catalog = await this.syncCatalog(signal);
     await this.pollOrders(signal);
     await this.pollOrderStatuses(signal);
@@ -478,8 +479,18 @@ class WordPressBridgeService {
       },
     };
     const response = await this.wp.heartbeat(payload, signal);
-    this.persistRemoteSiteId(response?.site_id ? String(response.site_id) : null);
-    getDatabase().prepare('UPDATE wordpress_bridge_config SET last_heartbeat=?, last_error=NULL, last_error_at=NULL, updated_at=? WHERE id=1').run(nowIso(), nowIso());
+    const remoteSource = response?.source_instance_id ? String(response.source_instance_id) : '';
+    if (remoteSource !== config.bridge_id) {
+      getDatabase().prepare(`
+        UPDATE wordpress_bridge_config
+        SET applied_catalog_revision = 0, last_catalog_sync = NULL,
+            remote_site_id = ?, last_error = NULL, last_error_at = NULL, last_heartbeat = ?, updated_at = ?
+        WHERE id = 1
+      `).run(response?.site_id ? String(response.site_id) : null, nowIso(), nowIso());
+    } else {
+      this.persistRemoteSiteId(response?.site_id ? String(response.site_id) : null);
+      getDatabase().prepare('UPDATE wordpress_bridge_config SET last_heartbeat=?, last_error=NULL, last_error_at=NULL, updated_at=? WHERE id=1').run(nowIso(), nowIso());
+    }
   }
 
   private installTimers(): void {
