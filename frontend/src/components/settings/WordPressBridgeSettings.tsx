@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { CheckCircle2, CircleAlert, Link2Off, RefreshCw, Save, Wifi, WifiOff } from 'lucide-react';
@@ -22,10 +22,27 @@ type BridgeStatus = {
   running: boolean;
 };
 
+type ApiError = {
+  response?: {
+    data?: {
+      error?: unknown;
+    };
+  };
+};
+
 function formatTimestamp(value: string | null): string {
   if (!value) return 'Never';
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const apiError = error as ApiError;
+    const message = apiError.response?.data?.error;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+  return fallback;
 }
 
 export function WordPressBridgeSettings() {
@@ -39,10 +56,35 @@ export function WordPressBridgeSettings() {
   const [syncing, setSyncing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
 
-  const load = useCallback(async () => {
+  useEffect(() => {
+    let active = true;
+
+    const loadInitialStatus = async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get<BridgeStatus>('/wordpress-bridge/status');
+        if (!active) return;
+        setStatus(data);
+        setSiteUrl(data.site_url || '');
+        setEnabled(Boolean(data.enabled));
+      } catch {
+        if (active) toast.error('Could not load WordPress Bridge settings.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    void loadInitialStatus();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const load = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/wordpress-bridge/status');
+      const { data } = await api.get<BridgeStatus>('/wordpress-bridge/status');
       setStatus(data);
       setSiteUrl(data.site_url || '');
       setEnabled(Boolean(data.enabled));
@@ -51,11 +93,7 @@ export function WordPressBridgeSettings() {
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  };
 
   const save = async () => {
     setSaving(true);
@@ -65,12 +103,12 @@ export function WordPressBridgeSettings() {
         enabled,
       };
       if (apiKey.trim()) payload.api_key = apiKey.trim();
-      const { data } = await api.put('/wordpress-bridge/config', payload);
+      const { data } = await api.put<BridgeStatus>('/wordpress-bridge/config', payload);
       setStatus(data);
       setApiKey('');
       toast.success(enabled ? 'WordPress connection saved and enabled.' : 'WordPress Bridge settings saved.');
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Could not save WordPress Bridge settings.');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Could not save WordPress Bridge settings.'));
     } finally {
       setSaving(false);
     }
@@ -79,11 +117,11 @@ export function WordPressBridgeSettings() {
   const test = async () => {
     setTesting(true);
     try {
-      const { data } = await api.post('/wordpress-bridge/test', {});
+      const { data } = await api.post<{ health?: { site_id?: string } }>('/wordpress-bridge/test', {});
       toast.success(data?.health?.site_id ? `Connected to WordPress site ${data.health.site_id}.` : 'WordPress connection is healthy.');
       await load();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'WordPress connection test failed.');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'WordPress connection test failed.'));
     } finally {
       setTesting(false);
     }
@@ -95,8 +133,8 @@ export function WordPressBridgeSettings() {
       await api.post('/wordpress-bridge/sync', {});
       toast.success('Catalog synchronization completed.');
       await load();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Catalog synchronization failed.');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, 'Catalog synchronization failed.'));
       await load();
     } finally {
       setSyncing(false);
@@ -107,7 +145,7 @@ export function WordPressBridgeSettings() {
     if (!window.confirm('Disconnect this FloCafe installation from the WordPress site?')) return;
     setDisconnecting(true);
     try {
-      const { data } = await api.post('/wordpress-bridge/disconnect', {});
+      const { data } = await api.post<BridgeStatus>('/wordpress-bridge/disconnect', {});
       setStatus(data);
       setSiteUrl('');
       setApiKey('');
@@ -196,36 +234,16 @@ export function WordPressBridgeSettings() {
         </label>
 
         <div className="flex flex-wrap gap-2 pt-1">
-          <button
-            type="button"
-            onClick={save}
-            disabled={saving || loading}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
-          >
+          <button type="button" onClick={save} disabled={saving || loading} className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50">
             <Save size={16} /> {saving ? 'Saving…' : 'Save connection'}
           </button>
-          <button
-            type="button"
-            onClick={test}
-            disabled={testing || !status?.configured}
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
-          >
+          <button type="button" onClick={test} disabled={testing || !status?.configured} className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50">
             <Wifi size={16} /> {testing ? 'Testing…' : 'Test connection'}
           </button>
-          <button
-            type="button"
-            onClick={syncNow}
-            disabled={syncing || !status?.configured}
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
-          >
+          <button type="button" onClick={syncNow} disabled={syncing || !status?.configured} className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50">
             <RefreshCw size={16} className={syncing ? 'animate-spin' : ''} /> {syncing ? 'Syncing…' : 'Sync catalog now'}
           </button>
-          <button
-            type="button"
-            onClick={disconnect}
-            disabled={disconnecting || !status?.configured}
-            className="inline-flex items-center gap-2 rounded-lg border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/30 disabled:opacity-50"
-          >
+          <button type="button" onClick={disconnect} disabled={disconnecting || !status?.configured} className="inline-flex items-center gap-2 rounded-lg border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/30 disabled:opacity-50">
             <Link2Off size={16} /> {disconnecting ? 'Disconnecting…' : 'Disconnect'}
           </button>
         </div>
