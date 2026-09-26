@@ -1,4 +1,3 @@
-import { safeStorage } from 'electron';
 import { randomBytes, createHash } from 'node:crypto';
 import { getDatabase, getSettingValue } from '../db';
 import { getServerPort } from '../server-state';
@@ -107,6 +106,12 @@ function bool(value: unknown): boolean {
 
 function extractError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function getSecureStorage(): typeof import('electron').safeStorage {
+  // Lazy-load Electron so backend-only tests and tooling can import the service
+  // without requiring an Electron runtime.
+  return require('electron').safeStorage;
 }
 
 class WordPressHttpClient {
@@ -250,10 +255,10 @@ class WordPressBridgeService {
       if (typeof input.api_key !== 'string' || !input.api_key.trim()) {
         throw new Error('Bridge API key cannot be empty. Use Disconnect to remove the connection.');
       }
-      if (!safeStorage.isEncryptionAvailable()) {
+      if (!getSecureStorage().isEncryptionAvailable()) {
         throw new Error('Secure credential storage is not available on this device');
       }
-      encrypted = safeStorage.encryptString(input.api_key.trim()).toString('base64');
+      encrypted = getSecureStorage().encryptString(input.api_key.trim()).toString('base64');
     }
 
     const enabled = input.enabled === undefined ? bool(current.enabled) : bool(input.enabled);
@@ -492,8 +497,8 @@ class WordPressBridgeService {
 
   private decryptApiKey(encrypted: string | null): string {
     if (!encrypted) throw new Error('WordPress Bridge API key is not configured');
-    if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure credential storage is not available on this device');
-    return safeStorage.decryptString(Buffer.from(encrypted, 'base64'));
+    if (!getSecureStorage().isEncryptionAvailable()) throw new Error('Secure credential storage is not available on this device');
+    return getSecureStorage().decryptString(Buffer.from(encrypted, 'base64'));
   }
 
   private buildCatalogSnapshot(): CatalogSnapshot {
