@@ -5260,6 +5260,183 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
       `);
     },
   },
+
+  {
+    version: 94,
+    name: 'add_wordpress_bridge_catalog',
+    up: () => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_config (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          bridge_id TEXT NOT NULL,
+          site_url TEXT NOT NULL DEFAULT '',
+          api_key_encrypted TEXT,
+          enabled INTEGER NOT NULL DEFAULT 0,
+          applied_catalog_revision INTEGER NOT NULL DEFAULT 0,
+          last_catalog_sync TEXT,
+          last_order_poll TEXT,
+          last_heartbeat TEXT,
+          last_error TEXT,
+          last_error_at TEXT,
+          remote_site_id TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_catalog_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          revision INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_outbox (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          type TEXT NOT NULL CHECK (type IN ('catalog')),
+          status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+          attempts INTEGER NOT NULL DEFAULT 0,
+          next_attempt_at TEXT NOT NULL,
+          last_error TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_wordpress_bridge_outbox_due
+          ON wordpress_bridge_outbox(status, next_attempt_at);
+
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_mappings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          entity_type TEXT NOT NULL CHECK (entity_type IN ('category', 'product')),
+          flocafe_id TEXT NOT NULL,
+          wordpress_id INTEGER NOT NULL,
+          last_revision INTEGER NOT NULL DEFAULT 0,
+          last_hash TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          UNIQUE(entity_type, flocafe_id),
+          UNIQUE(entity_type, wordpress_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_orders (
+          external_order_id TEXT PRIMARY KEY,
+          woo_order_id INTEGER NOT NULL UNIQUE,
+          flocafe_order_id TEXT,
+          status TEXT NOT NULL DEFAULT 'pending',
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        INSERT OR IGNORE INTO wordpress_bridge_catalog_state (id, revision, updated_at)
+        VALUES (1, 0, CURRENT_TIMESTAMP);
+
+        INSERT OR IGNORE INTO wordpress_bridge_config (
+          id, bridge_id, site_url, api_key_encrypted, enabled,
+          applied_catalog_revision, last_catalog_sync, last_order_poll,
+          last_heartbeat, last_error, last_error_at, remote_site_id,
+          created_at, updated_at
+        ) VALUES (
+          1, 'bridge-' || lower(hex(randomblob(16))), '', NULL, 0,
+          0, NULL, NULL, NULL, NULL, NULL, NULL,
+          CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        );
+
+        CREATE TRIGGER IF NOT EXISTS wordpress_bridge_categories_insert
+        AFTER INSERT ON categories BEGIN
+          UPDATE wordpress_bridge_catalog_state
+            SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS wordpress_bridge_categories_update
+        AFTER UPDATE ON categories BEGIN
+          UPDATE wordpress_bridge_catalog_state
+            SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS wordpress_bridge_categories_delete
+        AFTER DELETE ON categories BEGIN
+          UPDATE wordpress_bridge_catalog_state
+            SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS wordpress_bridge_products_insert
+        AFTER INSERT ON products BEGIN
+          UPDATE wordpress_bridge_catalog_state
+            SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS wordpress_bridge_products_update
+        AFTER UPDATE ON products BEGIN
+          UPDATE wordpress_bridge_catalog_state
+            SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1;
+        END;
+        CREATE TRIGGER IF NOT EXISTS wordpress_bridge_products_delete
+        AFTER DELETE ON products BEGIN
+          UPDATE wordpress_bridge_catalog_state
+            SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1;
+        END;
+      `);
+    },
+  },
+  {
+    version: 95,
+    name: 'add_wordpress_bridge_order_state',
+    up: () => {
+      db.exec(`
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_wordpress_online_external_order
+        ON orders(online_platform, external_order_id)
+        WHERE online_platform = 'wordpress' AND external_order_id IS NOT NULL;
+
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_order_state (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          revision INTEGER NOT NULL DEFAULT 0,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_order_changes (
+          revision INTEGER PRIMARY KEY,
+          order_id INTEGER NOT NULL,
+          external_order_id TEXT,
+          status TEXT NOT NULL,
+          changed_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_wordpress_bridge_order_changes_order
+          ON wordpress_bridge_order_changes(order_id, revision);
+
+        INSERT OR IGNORE INTO wordpress_bridge_order_state (id, revision, updated_at)
+        VALUES (1, 0, CURRENT_TIMESTAMP);
+
+        CREATE TRIGGER IF NOT EXISTS wordpress_bridge_orders_insert
+        AFTER INSERT ON orders
+        WHEN NEW.online_platform = 'wordpress' AND NEW.external_order_id IS NOT NULL
+        BEGIN
+          UPDATE wordpress_bridge_order_state
+            SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1;
+          INSERT INTO wordpress_bridge_order_changes(
+            revision, order_id, external_order_id, status, changed_at
+          )
+          SELECT revision, NEW.id, NEW.external_order_id, NEW.status, CURRENT_TIMESTAMP
+          FROM wordpress_bridge_order_state WHERE id = 1;
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS wordpress_bridge_orders_status_update
+        AFTER UPDATE OF status ON orders
+        WHEN OLD.status IS NOT NEW.status
+          AND NEW.online_platform = 'wordpress'
+          AND NEW.external_order_id IS NOT NULL
+        BEGIN
+          UPDATE wordpress_bridge_order_state
+            SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = 1;
+          INSERT INTO wordpress_bridge_order_changes(
+            revision, order_id, external_order_id, status, changed_at
+          )
+          SELECT revision, NEW.id, NEW.external_order_id, NEW.status, CURRENT_TIMESTAMP
+          FROM wordpress_bridge_order_state WHERE id = 1;
+        END;
+      `);
+    },
+  },
 ];
 
 function syncBackupBeforeMigration(fromVersion: number, toVersion: number): void {
