@@ -5289,6 +5289,16 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
           updated_at TEXT NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_catalog_changes (
+          revision INTEGER PRIMARY KEY,
+          entity_type TEXT NOT NULL CHECK (entity_type IN ('category', 'product')),
+          entity_id TEXT NOT NULL,
+          action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
+          changed_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_wordpress_bridge_catalog_changes_entity
+          ON wordpress_bridge_catalog_changes(entity_type, entity_id);
+
         CREATE TABLE IF NOT EXISTS wordpress_bridge_outbox (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           type TEXT NOT NULL CHECK (type IN ('catalog')),
@@ -5343,36 +5353,54 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
           UPDATE wordpress_bridge_catalog_state
             SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = 1;
+          INSERT INTO wordpress_bridge_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'category', CAST(NEW.id AS TEXT), 'created', CURRENT_TIMESTAMP
+          FROM wordpress_bridge_catalog_state WHERE id = 1;
         END;
         CREATE TRIGGER IF NOT EXISTS wordpress_bridge_categories_update
         AFTER UPDATE ON categories BEGIN
           UPDATE wordpress_bridge_catalog_state
             SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = 1;
+          INSERT INTO wordpress_bridge_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'category', CAST(NEW.id AS TEXT), 'updated', CURRENT_TIMESTAMP
+          FROM wordpress_bridge_catalog_state WHERE id = 1;
         END;
         CREATE TRIGGER IF NOT EXISTS wordpress_bridge_categories_delete
         AFTER DELETE ON categories BEGIN
           UPDATE wordpress_bridge_catalog_state
             SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = 1;
+          INSERT INTO wordpress_bridge_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'category', CAST(OLD.id AS TEXT), 'deleted', CURRENT_TIMESTAMP
+          FROM wordpress_bridge_catalog_state WHERE id = 1;
         END;
         CREATE TRIGGER IF NOT EXISTS wordpress_bridge_products_insert
         AFTER INSERT ON products BEGIN
           UPDATE wordpress_bridge_catalog_state
             SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = 1;
+          INSERT INTO wordpress_bridge_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'product', CAST(NEW.id AS TEXT), 'created', CURRENT_TIMESTAMP
+          FROM wordpress_bridge_catalog_state WHERE id = 1;
         END;
         CREATE TRIGGER IF NOT EXISTS wordpress_bridge_products_update
         AFTER UPDATE ON products BEGIN
           UPDATE wordpress_bridge_catalog_state
             SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = 1;
+          INSERT INTO wordpress_bridge_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'product', CAST(NEW.id AS TEXT), 'updated', CURRENT_TIMESTAMP
+          FROM wordpress_bridge_catalog_state WHERE id = 1;
         END;
         CREATE TRIGGER IF NOT EXISTS wordpress_bridge_products_delete
         AFTER DELETE ON products BEGIN
           UPDATE wordpress_bridge_catalog_state
             SET revision = revision + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = 1;
+          INSERT INTO wordpress_bridge_catalog_changes(revision, entity_type, entity_id, action, changed_at)
+          SELECT revision, 'product', CAST(OLD.id AS TEXT), 'deleted', CURRENT_TIMESTAMP
+          FROM wordpress_bridge_catalog_state WHERE id = 1;
         END;
       `);
     },
