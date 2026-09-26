@@ -575,7 +575,7 @@ class WordPressBridgeService {
     return Number(db.prepare(`
       INSERT INTO wordpress_bridge_outbox(type,status,attempts,next_attempt_at,created_at,updated_at)
       VALUES ('catalog','processing',0,?,?,?)
-    `).run('catalog', 'processing', 0, now, now, now).lastInsertRowid);
+    `).run(now, now, now).lastInsertRowid);
   }
 
   private completeOutbox(id: number): void {
