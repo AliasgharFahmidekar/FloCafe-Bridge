@@ -17,6 +17,7 @@ const request = require('supertest');
 const { initDatabase, getDatabase, closeDatabase, now } = require('../main/db');
 const { authorizationRoutes } = require('../main/routes/authorization');
 const { requireAnyPermission, requirePermission } = require('../main/services/authorization');
+const { requireAuth } = require('../main/server');
 
 function seedUser(db: any, id: string, role: string) {
   const email = `${id}@test.local`;
@@ -152,6 +153,46 @@ async function main(): Promise<void> {
     VALUES ('authorization-cashier', 'orders.create', 'deny', ?, ?, ?)
   `).run('authorization-owner', now(), now());
   assert.equal((await request(app).post('/api/tax/preview').set(cashier)).status, 403, 'a cashier denied both pos.use and orders.create loses basket pricing');
+
+  // The real requireAuth exempted anything whose path started with '/api/auth',
+  // which also matched '/api/authorization/*' because "authorization" starts
+  // with "auth". That skipped token verification for the whole management API,
+  // so prove a tokenless request is actually rejected through the production
+  // middleware and not merely through the router's own permission gate.
+  const jwt = require('jsonwebtoken');
+  const expressRateLimit = require('express-rate-limit');
+  const { getJWTSecret } = require('../main/routes/auth');
+  const realApp = express();
+  realApp.use(express.json());
+  // Same order as main/server.ts: rate limit, then requireAuth, then routes.
+  realApp.use('/api', expressRateLimit({ windowMs: 60 * 1000, limit: 100, standardHeaders: true, legacyHeaders: false }));
+  realApp.use(requireAuth);
+  realApp.use('/api/authorization', authorizationRoutes);
+
+  const tokenFor = (userId: string, role: string, secret = getJWTSecret()) =>
+    `Bearer ${jwt.sign({ userId, email: `${userId}@test.local`, role }, secret, { expiresIn: '1h' })}`;
+
+  assert.equal((await request(realApp).get('/api/authorization/catalog')).status, 401, 'no token cannot reach the authorization API');
+  // 404 rather than 401 is the proof the exemption still holds: the request got
+  // past requireAuth and all the way to routing, where nothing is mounted. No
+  // route is registered here on purpose, so nothing shadows the 401.
+  assert.equal((await request(realApp).get('/api/auth/login')).status, 404, 'the /api/auth exemption lets login reach routing so it can verify its own token');
+  assert.equal((await request(realApp).get('/api/authorization/catalog').set('Authorization', 'Bearer not-a-jwt')).status, 401, 'a malformed token cannot reach the authorization API');
+  assert.equal(
+    (await request(realApp).get('/api/authorization/catalog').set('Authorization', tokenFor('authorization-owner', 'owner', 'a-different-secret'))).status,
+    401,
+    'a token signed with the wrong secret cannot reach the authorization API',
+  );
+  assert.equal(
+    (await request(realApp).get('/api/authorization/catalog').set('Authorization', tokenFor('authorization-manager', 'manager'))).status,
+    403,
+    'a real manager token reaches the route and is refused by its own permission gate, not by the path exemption',
+  );
+  assert.equal(
+    (await request(realApp).get('/api/authorization/catalog').set('Authorization', tokenFor('authorization-owner', 'owner'))).status,
+    200,
+    'an owner token reaches the catalog',
+  );
 
   console.log('Authorization management API tests passed');
 }
