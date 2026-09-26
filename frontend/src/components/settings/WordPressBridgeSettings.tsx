@@ -120,7 +120,7 @@ export function WordPressBridgeSettings() {
     }
   };
 
-  const connected = Boolean(status?.configured && status?.enabled && status?.last_heartbeat);
+  const connected = Boolean(status?.configured && status?.enabled && !status?.last_error && (status?.remote_site_id || status?.last_heartbeat));
   const revisionHealthy = !status || status.applied_catalog_revision >= status.source_catalog_revision;
 
   return (
