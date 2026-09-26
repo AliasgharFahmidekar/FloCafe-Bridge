@@ -49,6 +49,7 @@ import {
 } from '@/components/settings/DatabaseSettingsTab';
 import { Toggle } from '@/components/settings/Toggle';
 import { SettingsTabShell } from '@/components/settings/SettingsTabShell';
+import { WordPressBridgeSettings } from '@/components/settings/WordPressBridgeSettings';
 import type { HealthCheckReport } from '@/types/electron';
 import { useTranslations } from 'use-intl';
 import { Ltr } from '@/components/layout/Ltr';
@@ -2896,6 +2897,9 @@ export default function SettingsPage() {
             <SettingsNavItem label={t('tabMobileAccess')} value="mobile-access" active={activeTab} onClick={handleSettingsTabChange} />
             <SettingsNavItem label={t('tabBackupData')} value="data" active={activeTab} onClick={handleSettingsTabChange} />
             <SettingsNavItem label={t('tabOrderflow')} value="orderflow" active={activeTab} onClick={handleSettingsTabChange} />
+            {isAdmin && (
+              <SettingsNavItem label="WordPress / WooCommerce" value="wordpress-bridge" active={activeTab} onClick={handleSettingsTabChange} />
+            )}
 
             {/* Account group */}
             <div className="hidden md:block px-3 pt-4 pb-2 mt-3 mb-1 border-b border-border">
@@ -4275,6 +4279,12 @@ export default function SettingsPage() {
             </div>
           </SettingsTabShell>
         </TabsContent>
+
+        {isAdmin && (
+        <TabsContent value="wordpress-bridge">
+          <WordPressBridgeSettings />
+        </TabsContent>
+        )}
 
         {/* About tab */}
         <TabsContent value="about">

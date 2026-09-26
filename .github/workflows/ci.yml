@@ -22,7 +22,7 @@ jobs:
   # 1. Dependency Review (Security)
   dependency-review:
     name: Security & Dependency Review
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.repository == 'FreeOpenSourcePOS/FloCafe'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

@@ -6,6 +6,7 @@ import { orderRoutes } from './orders';
 import { validateProductQuantity } from './orders-validation';
 import { resolveInventoryDeduction } from '../services/inventory';
 import { parsePhoneE164, stripPhoneDigits } from '../lib/phone';
+import { getInternalWordPressBridgeToken } from '../services/wordpress-bridge';
 
 export const integrationRoutes = Router();
 
@@ -22,10 +23,15 @@ function timingSafeEqualText(a: string, b: string): boolean {
 
 function requireIntegrationKey(req: Request, res: Response): boolean {
   if (!isLoopback(req)) { res.status(403).json({ error: 'Integration API is localhost-only' }); return false; }
-  const expected = process.env.FLOCAFE_INTEGRATION_API_KEY?.trim();
-  if (!expected) { res.status(503).json({ error: 'Integration API is not configured' }); return false; }
   const supplied = req.get('x-flocafe-integration-key')?.trim() || '';
-  if (!supplied || !timingSafeEqualText(supplied, expected)) { res.status(401).json({ error: 'Invalid integration credentials' }); return false; }
+  const internalToken = getInternalWordPressBridgeToken();
+  const externalToken = process.env.FLOCAFE_INTEGRATION_API_KEY?.trim() || '';
+  const validInternal = Boolean(supplied) && timingSafeEqualText(supplied, internalToken);
+  const validExternal = Boolean(externalToken) && Boolean(supplied) && timingSafeEqualText(supplied, externalToken);
+  if (!validInternal && !validExternal) {
+    res.status(externalToken ? 401 : 503).json({ error: externalToken ? 'Invalid integration credentials' : 'Integration API is not configured' });
+    return false;
+  }
   return true;
 }
 
