@@ -313,6 +313,7 @@ class WordPressBridgeService {
       return { skipped: true, reason: 'already_applied', revision: snapshot.revision };
     }
     const outboxId = this.ensureCatalogOutbox();
+    if (!outboxId) return { skipped: true, reason: 'retry_backoff' };
     try {
       const response = await this.wp.syncCatalog(snapshot, signal);
       if (response?.mappings?.products) {
@@ -562,7 +563,7 @@ class WordPressBridgeService {
     `).get() as { id: number; status: string; next_attempt_at: string } | undefined;
     if (existing) {
       if (existing.status === 'pending' && new Date(existing.next_attempt_at).getTime() > Date.now()) {
-        throw new Error('Catalog sync retry is waiting for its backoff window');
+        return 0;
       }
       if (existing.status === 'pending') {
         db.prepare(`UPDATE wordpress_bridge_outbox SET status='processing', updated_at=? WHERE id=?`).run(nowIso(), existing.id);
@@ -574,7 +575,7 @@ class WordPressBridgeService {
     return Number(db.prepare(`
       INSERT INTO wordpress_bridge_outbox(type,status,attempts,next_attempt_at,created_at,updated_at)
       VALUES ('catalog','processing',0,?,?,?)
-    `).run(now, now, now).lastInsertRowid);
+    `).run('catalog', 'processing', 0, now, now, now).lastInsertRowid);
   }
 
   private completeOutbox(id: number): void {
