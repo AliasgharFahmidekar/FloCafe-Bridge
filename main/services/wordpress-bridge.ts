@@ -37,6 +37,7 @@ type BridgeStatus = {
 
 type CatalogSnapshot = {
   revision: number;
+  source_instance_id: string;
   generated_at: string;
   full_snapshot: true;
   currency: string;
@@ -94,7 +95,7 @@ function nowIso(): string {
 }
 
 function safeUrl(input: string): string {
-  const trimmed = input.trim().replace(/\/$/, '');
+  const trimmed = input.trim().replace(/\/+$/, '');
   const url = new URL(trimmed);
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('WordPress site URL must use HTTP or HTTPS');
   return trimmed;
@@ -309,7 +310,7 @@ class WordPressBridgeService {
     const key = this.decryptApiKey(config.api_key_encrypted);
     this.wp.set(config.site_url, key);
     const snapshot = this.buildCatalogSnapshot();
-    if (Number(snapshot.revision) > 0 && Number(snapshot.revision) <= Number(config.applied_catalog_revision)) {
+    if (config.last_catalog_sync && Number(snapshot.revision) <= Number(config.applied_catalog_revision)) {
       return { skipped: true, reason: 'already_applied', revision: snapshot.revision };
     }
     const outboxId = this.ensureCatalogOutbox();
@@ -512,6 +513,7 @@ class WordPressBridgeService {
     `).all() as any[];
     return {
       revision: Number(state.revision || 0),
+      source_instance_id: this.readConfig().bridge_id,
       generated_at: nowIso(),
       full_snapshot: true,
       currency: getSettingValue('currency') || '',
