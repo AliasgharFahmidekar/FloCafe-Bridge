@@ -38,6 +38,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   // slash so this doesn't also swallow /api/authorization, which relies on
   // this middleware to populate req.user before its own permission gate runs.
   if (req.path === '/api/auth' || req.path.startsWith('/api/auth/')) { next(); return; }
+  // Integration boundary performs its own loopback + shared-token authentication.
+  if (req.path.startsWith('/api/integration')) { next(); return; }
   // Allow unauthenticated GET requests for product images (so <img> tags work)
   if (req.path.startsWith('/api/products/') && req.path.endsWith('/image') && req.method === 'GET') { next(); return; }
   // Login-screen support-ticket paths, rate-limited in support-ticket.ts.
