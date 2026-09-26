@@ -37,6 +37,7 @@ import { whatsappRoutes } from './whatsapp';
 import { supportTicketRoutes } from './support-ticket';
 import { diagnosticsRoutes } from './diagnostics';
 import { integrationRoutes } from './integration';
+import wordpressBridgeRoutes from './wordpress-bridge';
 import { authorizationRoutes } from './authorization';
 import { getDatabase, getSettingValue, getCachedPairingCode, setCachedPairingCode } from '../db';
 
@@ -108,6 +109,7 @@ export function registerRoutes(app: Express): void {
   app.use('/api/diagnostics', diagnosticsRoutes);
   // Local-only integration boundary used by the embedded WordPress Bridge.
   app.use('/api/integration', integrationRoutes);
+  app.use('/api/wordpress-bridge', wordpressBridgeRoutes);
   app.use('/api/authorization', authorizationRoutes);
 
   // Tax preview. Priced on every cart change in the prepaid checkout modal, so it
