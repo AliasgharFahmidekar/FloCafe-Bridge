@@ -18,6 +18,7 @@ import { destroySharedRasterRenderer } from './printers/raster-renderer';
 import { registerIpcHandlers, isTrustedSender } from './ipc';
 import { authorizeMasterPin } from './services/master-pin';
 import { requestShutdown as requestWhatsAppShutdown, shutdown as shutdownWhatsApp } from './services/whatsapp';
+import { wordpressBridge } from './services/wordpress-bridge';
 import log from 'electron-log/main';
 import { autoUpdater } from 'electron-updater';
 import { isAllowedLocalWindowUrl, isSafeExternalUrl } from './security/url-allowlist';
@@ -1184,6 +1185,9 @@ async function initialize(): Promise<void> {
     await startServer();
     if (isShutdownRequested()) return;
 
+    // WordPress Bridge is optional and must never block core Flo startup.
+    wordpressBridge.start();
+
     cloudSync.start();
     telemetry.start();
     googleDrive.start();
@@ -1416,6 +1420,7 @@ const cleanupCoordinator = createShutdownCoordinator(() => [
     },
   },
   { name: 'raster surface', run: () => destroySharedRasterRenderer() },
+  { name: 'WordPress Bridge', run: () => wordpressBridge.stop(), blocksDatabase: true },
   // Drain Server App before shutting down main API.
   { name: 'Server App', run: () => stopServerApp(), blocksDatabase: true },
   { name: 'Main server', run: () => stopServer(), blocksDatabase: true },
