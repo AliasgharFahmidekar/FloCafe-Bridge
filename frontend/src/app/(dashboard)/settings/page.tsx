@@ -4289,6 +4289,16 @@ export default function SettingsPage() {
         {/* About tab */}
         <TabsContent value="about">
           <SettingsTabShell>
+            <div className="bg-card rounded-xl border border-brand/20 bg-brand/[0.03] p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-2">{t('aboutLyraPos')}</h2>
+              <p className="text-sm leading-6 text-muted-foreground mb-5">
+                {t('aboutLyraPosDescription')}
+              </p>
+              <a href="https://lyradesgin.ir" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md border border-brand/30 px-3 py-2 text-sm font-medium text-brand hover:bg-brand/10 hover:underline">
+                {t('aboutLyraPosWebsite')}
+              </a>
+            </div>
+
             <div className="bg-card rounded-xl border border-border p-6">
               <h2 className="font-semibold text-foreground mb-4">{t('aboutFloCafe')}</h2>
               <p className="text-sm text-muted-foreground mb-6">
