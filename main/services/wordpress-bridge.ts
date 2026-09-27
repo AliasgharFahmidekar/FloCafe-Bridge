@@ -58,6 +58,8 @@ type CatalogSnapshot = {
     price: number;
     sku: string | null;
     image_url: string | null;
+    active: boolean;
+    available: boolean;
     is_available: boolean;
     sort_order: number;
     sale_unit: string | null;
