@@ -1997,7 +1997,10 @@
     "themeTitle": "Tema",
     "themeLight": "Terang",
     "themeDark": "Gelap",
-    "themeSystem": "Sistem"
+    "themeSystem": "Sistem",
+    "aboutLyraPos": "Tentang LyraPOS",
+    "aboutLyraPosDescription": "LyraPOS adalah edisi lanjutan berbasis fondasi FloCafe yang disesuaikan dan diperluas untuk memberikan pengalaman POS yang lebih lengkap, terlokalisasi, dan modern. Edisi ini mempertahankan inti FloCafe yang telah teruji sekaligus menambahkan peningkatan dan integrasi khusus Lyra. Dikembangkan oleh Lyra Design.",
+    "aboutLyraPosWebsite": "Kunjungi lyradesgin.ir"
   },
   "setup": {
     "alreadyCompleted": "Pengaturan awal sudah selesai dilakukan pada instalasi ini. Mengalihkan ke layar masuk…",
@@ -2268,7 +2271,8 @@
     "urgencyLow": "Rendah — pertanyaan atau masukan",
     "urgencyNormal": "Normal — pekerjaan terdampak",
     "urgencyUrgent": "Mendesak — tidak dapat beroperasi",
-    "version": "Versi"
+    "version": "Versi",
+    "lyraSupportNotice": "Bagian ini mengirimkan laporan Anda langsung ke inti FloCafe. Untuk menghubungi Lyra secara langsung, silakan melalui lyradesgin.ir."
   },
   "tables": {
     "allFloors": "Semua lantai",

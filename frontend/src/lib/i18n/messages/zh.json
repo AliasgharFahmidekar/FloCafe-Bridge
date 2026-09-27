@@ -1997,7 +1997,10 @@
     "themeTitle": "主题",
     "themeLight": "浅色",
     "themeDark": "深色",
-    "themeSystem": "跟随系统"
+    "themeSystem": "跟随系统",
+    "aboutLyraPos": "关于 LyraPOS",
+    "aboutLyraPosDescription": "LyraPOS 是基于 FloCafe 核心打造的高级版本，为提供更完整、本地化且现代的 POS 体验进行了适配和扩展。它保留经过验证的 FloCafe 核心，同时加入 Lyra 专属的改进和集成功能。由 Lyra Design 开发。",
+    "aboutLyraPosWebsite": "访问 lyradesgin.ir"
   },
   "setup": {
     "alreadyCompleted": "此安装已完成设置。正在跳转到登录…",
@@ -2268,7 +2271,8 @@
     "urgencyLow": "低 — 问题或反馈",
     "urgencyNormal": "中 — 影响工作",
     "urgencyUrgent": "紧急 — 无法运营",
-    "version": "版本"
+    "version": "版本",
+    "lyraSupportNotice": "此部分会将您的报告直接发送至 FloCafe 核心。如需直接联系 Lyra，请通过 lyradesgin.ir 与我们联系。"
   },
   "tables": {
     "allFloors": "全部楼层",

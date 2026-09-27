@@ -1,7 +1,7 @@
 {
   "name": "flo-desktop",
   "version": "3.11.0",
-  "description": "Free, open-source, offline-first restaurant POS with KDS, SQLite, and thermal printer support.",
+  "description": "LyraFlo — an advanced restaurant POS built on the FloCafe foundation, with KDS, SQLite, and thermal printer support.",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -234,7 +234,7 @@
     "name": "Flo",
     "email": "support@flo.local"
   },
-  "homepage": "https://flopos.com",
+  "homepage": "https://lyradesgin.ir",
   "repository": {
     "type": "git",
     "url": "https://github.com/FreeOpenSourcePOS/FloCafe.git"
@@ -296,7 +296,7 @@
   },
   "build": {
     "appId": "com.flo.desktop",
-    "productName": "Flo Cafe",
+    "productName": "LyraFlo",
     "icon": "assets/icon-512.png",
     "afterPack": "scripts/afterPack.js",
     "asar": true,
@@ -353,7 +353,7 @@
       "publisherDisplayName": "Codify Apps Private Limited",
       "identityName": "CodifyAppsPrivateLimited.FloCafe",
       "publisher": "CN=34AFD24D-EC88-44B8-B309-08BB8A6BB5F7",
-      "displayName": "Flo Cafe",
+      "displayName": "LyraFlo",
       "languages": [
         "en-US"
       ]

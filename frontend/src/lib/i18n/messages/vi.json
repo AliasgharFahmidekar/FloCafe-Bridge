@@ -1997,7 +1997,10 @@
     "themeTitle": "Giao diện",
     "themeLight": "Sáng",
     "themeDark": "Tối",
-    "themeSystem": "Theo hệ thống"
+    "themeSystem": "Theo hệ thống",
+    "aboutLyraPos": "Giới thiệu LyraPOS",
+    "aboutLyraPosDescription": "LyraPOS là phiên bản nâng cao dựa trên nền tảng FloCafe, được điều chỉnh và mở rộng để mang lại trải nghiệm POS đầy đủ, bản địa hóa và hiện đại hơn. Phiên bản này vẫn giữ nguyên lõi FloCafe đã được kiểm chứng, đồng thời bổ sung các cải tiến và tích hợp riêng của Lyra. Được phát triển bởi Lyra Design.",
+    "aboutLyraPosWebsite": "Truy cập lyradesgin.ir"
   },
   "setup": {
     "alreadyCompleted": "Bản cài đặt này đã hoàn tất thiết lập. Đang chuyển đến đăng nhập…",
@@ -2268,7 +2271,8 @@
     "urgencyLow": "Thấp - câu hỏi hoặc phản hồi",
     "urgencyNormal": "Bình thường - công việc bị ảnh hưởng",
     "urgencyUrgent": "Khẩn cấp - không thể hoạt động",
-    "version": "Phiên bản"
+    "version": "Phiên bản",
+    "lyraSupportNotice": "Phần này gửi báo cáo của bạn trực tiếp đến lõi FloCafe. Để liên hệ trực tiếp với Lyra, vui lòng liên hệ qua lyradesgin.ir."
   },
   "tables": {
     "allFloors": "Tất cả khu vực",

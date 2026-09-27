@@ -1997,7 +1997,10 @@
     "themeTitle": "Tema ve Renk Modu",
     "themeLight": "Açık Tema",
     "themeDark": "Koyu Tema",
-    "themeSystem": "Sistem Varsayılanı"
+    "themeSystem": "Sistem Varsayılanı",
+    "aboutLyraPos": "LyraPOS Hakkında",
+    "aboutLyraPosDescription": "LyraPOS, FloCafe altyapısı üzerine geliştirilmiş; daha kapsamlı, yerelleştirilmiş ve modern bir POS deneyimi için uyarlanıp genişletilmiş gelişmiş bir sürümdür. FloCafe’nin kanıtlanmış çekirdeğini korurken Lyra’ya özel geliştirmeler ve entegrasyonlar ekler. Lyra Design tarafından geliştirilmiştir.",
+    "aboutLyraPosWebsite": "lyradesgin.ir adresini ziyaret edin"
   },
   "setup": {
     "alreadyCompleted": "Kurulum bu cihazda zaten tamamlandı. Giriş ekranına yönlendiriliyorsunuz…",
@@ -2268,7 +2271,8 @@
     "urgencyLow": "Düşük — soru veya geri bildirim",
     "urgencyNormal": "Normal — operasyon etkileniyor",
     "urgencyUrgent": "Acil — satış yapılamıyor",
-    "version": "FloCafe Sürümü"
+    "version": "FloCafe Sürümü",
+    "lyraSupportNotice": "Bu bölüm raporunuzu doğrudan FloCafe çekirdeğine gönderir. Lyra ile doğrudan iletişim kurmak için lyradesgin.ir üzerinden bize ulaşın."
   },
   "tables": {
     "allFloors": "Tüm katlar",

@@ -1997,7 +1997,10 @@
     "themeTitle": "Tema",
     "themeLight": "Maliwanag",
     "themeDark": "Madilim",
-    "themeSystem": "System"
+    "themeSystem": "System",
+    "aboutLyraPos": "Tungkol sa LyraPOS",
+    "aboutLyraPosDescription": "LyraPOS is an advanced edition built on the FloCafe foundation, adapted and extended for a more complete, localized, modern POS experience. It preserves the proven FloCafe core while adding Lyra-specific improvements and integrations. Developed by Lyra Design.",
+    "aboutLyraPosWebsite": "Visit lyradesgin.ir"
   },
   "setup": {
     "alreadyCompleted": "Nakumpleto na ang setup sa installation na ito. Nireredirect sa pag-login…",
@@ -2268,7 +2271,8 @@
     "urgencyLow": "Mababa — tanong o feedback",
     "urgencyNormal": "Normal — apektado ang trabaho",
     "urgencyUrgent": "Kagyat — hindi makapag-operate",
-    "version": "Bersyon"
+    "version": "Bersyon",
+    "lyraSupportNotice": "Direktang ipinapadala ng seksyong ito ang iyong ulat sa FloCafe core. Para sa direktang pakikipag-ugnayan sa Lyra, makipag-ugnayan sa amin sa lyradesgin.ir."
   },
   "tables": {
     "allFloors": "Lahat ng palapag",

@@ -1997,7 +1997,10 @@
     "themeTitle": "থিম",
     "themeLight": "আলো",
     "themeDark": "অন্ধকার",
-    "themeSystem": "সিস্টেম"
+    "themeSystem": "সিস্টেম",
+    "aboutLyraPos": "LyraPOS সম্পর্কে",
+    "aboutLyraPosDescription": "LyraPOS হলো FloCafe-এর ভিত্তির ওপর তৈরি একটি উন্নত সংস্করণ, যা আরও পূর্ণাঙ্গ, স্থানীয়কৃত ও আধুনিক POS অভিজ্ঞতার জন্য অভিযোজিত ও সম্প্রসারিত হয়েছে। এটি পরীক্ষিত FloCafe কোর বজায় রেখে Lyra-এর নিজস্ব উন্নতি ও ইন্টিগ্রেশন যোগ করে। এটি Lyra Design দ্বারা তৈরি।",
+    "aboutLyraPosWebsite": "lyradesgin.ir দেখুন"
   },
   "setup": {
     "alreadyCompleted": "এই ইনস্টলে সেটআপ ইতিমধ্যেই সম্পন্ন হয়েছে। লগইন করার জন্য পুনঃনির্দেশ করা হচ্ছে...",
@@ -2268,7 +2271,8 @@
     "urgencyLow": "কম — প্রশ্ন বা প্রতিক্রিয়া",
     "urgencyNormal": "স্বাভাবিক - কাজ প্রভাবিত হয়",
     "urgencyUrgent": "জরুরী - কাজ করতে অক্ষম",
-    "version": "সংস্করণ"
+    "version": "সংস্করণ",
+    "lyraSupportNotice": "এই বিভাগটি আপনার রিপোর্ট সরাসরি FloCafe কোরে পাঠায়। Lyra-এর সঙ্গে সরাসরি যোগাযোগ করতে lyradesgin.ir-এর মাধ্যমে আমাদের সঙ্গে যোগাযোগ করুন।"
   },
   "tables": {
     "allFloors": "সব ফ্লোর",

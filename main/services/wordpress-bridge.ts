@@ -58,6 +58,8 @@ type CatalogSnapshot = {
     price: number;
     sku: string | null;
     image_url: string | null;
+    active: boolean;
+    available: boolean;
     is_available: boolean;
     sort_order: number;
     sale_unit: string | null;
@@ -569,6 +571,11 @@ class WordPressBridgeService {
         price: Number(row.price || 0),
         sku: row.sku == null || row.sku === '' ? null : String(row.sku),
         image_url: row.image_url == null || row.image_url === '' ? null : String(row.image_url),
+        // Keep lifecycle semantics explicit for the WordPress boundary:
+        // active/available controls ordering availability; WordPress visibility
+        // is handled independently from category visibility.
+        active: Number(row.is_active) === 1,
+        available: Number(row.is_active) === 1,
         is_available: Number(row.is_active) === 1,
         sort_order: Number(row.sort_order || 0),
         sale_unit: row.sale_unit == null || row.sale_unit === '' ? null : String(row.sale_unit),

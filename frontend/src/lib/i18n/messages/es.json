@@ -1997,7 +1997,10 @@
     "themeTitle": "Tema",
     "themeLight": "Claro",
     "themeDark": "Oscuro",
-    "themeSystem": "Sistema"
+    "themeSystem": "Sistema",
+    "aboutLyraPos": "About LyraPOS",
+    "aboutLyraPosDescription": "LyraPOS is an advanced edition built on the FloCafe foundation, adapted and extended for a more complete, localized, modern POS experience. It preserves the proven FloCafe core while adding Lyra-specific improvements and integrations. Developed by Lyra Design.",
+    "aboutLyraPosWebsite": "Visit lyradesgin.ir"
   },
   "setup": {
     "alreadyCompleted": "La configuración ya se completó en esta instalación. Redirigiendo al inicio de sesión…",
@@ -2268,7 +2271,8 @@
     "urgencyLow": "Baja — consulta o comentario",
     "urgencyNormal": "Normal — afecta el trabajo",
     "urgencyUrgent": "Urgente — no se puede operar",
-    "version": "Versión"
+    "version": "Versión",
+    "lyraSupportNotice": "This section sends your report directly to the FloCafe core. For direct Lyra support, please contact Lyra through lyradesgin.ir."
   },
   "tables": {
     "allFloors": "Todos los pisos",

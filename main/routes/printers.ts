@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- SQLite printer/order rows are intentionally dynamic at this legacy API boundary. */
 import { Router, Request, Response } from 'express';
 import { getDatabase, now, attachEffectiveAddons, isKotPrintingEnabled, isServerBillPrintingEnabled, parseItemJson } from '../db';
 import { getOrderWithItems } from './bills';
