@@ -208,7 +208,7 @@ export function formatClassicReceiptLegacy(order: any, bill: any, biz: any, cols
 
   if (biz.footer_note) pushCenteredWrapped(lines, biz.footer_note, cols);
 
-  appendPoweredByFooter(lines);
+  appendPoweredByFooter(lines, cols);
   lines.push('{CUT}');
 
   return buildEscPos(lines, useUnicode, { cutMode, arabicShaping, columns: cols }, warnings);
