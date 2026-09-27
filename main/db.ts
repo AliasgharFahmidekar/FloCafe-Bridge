@@ -5315,6 +5315,77 @@ export const MIGRATIONS: { version: number; name: string; up: () => void }[] = [
     },
   },
 
+
+  {
+    version: 95,
+    name: 'add_wordpress_bridge_native_state',
+    up: () => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_config (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          bridge_id TEXT NOT NULL,
+          site_url TEXT NOT NULL DEFAULT '',
+          api_key_encrypted TEXT,
+          enabled INTEGER NOT NULL DEFAULT 0,
+          applied_catalog_revision INTEGER NOT NULL DEFAULT 0,
+          last_catalog_sync TEXT,
+          last_order_poll TEXT,
+          last_heartbeat TEXT,
+          last_error TEXT,
+          last_error_at TEXT,
+          remote_site_id TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_outbox (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          type TEXT NOT NULL CHECK (type IN ('catalog')),
+          status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed')),
+          attempts INTEGER NOT NULL DEFAULT 0,
+          next_attempt_at TEXT NOT NULL,
+          last_error TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_wordpress_bridge_outbox_due
+          ON wordpress_bridge_outbox(status, next_attempt_at);
+
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_mappings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          entity_type TEXT NOT NULL CHECK (entity_type IN ('category', 'product')),
+          flocafe_id TEXT NOT NULL,
+          wordpress_id INTEGER NOT NULL,
+          last_revision INTEGER NOT NULL DEFAULT 0,
+          last_hash TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          UNIQUE(entity_type, flocafe_id),
+          UNIQUE(entity_type, wordpress_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS wordpress_bridge_orders (
+          external_order_id TEXT PRIMARY KEY,
+          woo_order_id INTEGER NOT NULL UNIQUE,
+          flocafe_order_id TEXT,
+          status TEXT NOT NULL DEFAULT 'pending',
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        INSERT OR IGNORE INTO wordpress_bridge_config (
+          id, bridge_id, site_url, api_key_encrypted, enabled,
+          applied_catalog_revision, last_catalog_sync, last_order_poll,
+          last_heartbeat, last_error, last_error_at, remote_site_id,
+          created_at, updated_at
+        ) VALUES (
+          1, 'bridge-' || lower(hex(randomblob(16))), '', NULL, 0,
+          0, NULL, NULL, NULL, NULL, NULL, NULL,
+          CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        );
+      `);
+    },
+  },
 ];
 
 function syncBackupBeforeMigration(fromVersion: number, toVersion: number): void {
