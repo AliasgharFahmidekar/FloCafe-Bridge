@@ -1998,9 +1998,9 @@
     "themeLight": "라이트",
     "themeDark": "다크",
     "themeSystem": "시스템",
-    "aboutLyraPos": "About LyraPOS",
-    "aboutLyraPosDescription": "LyraPOS is an advanced edition built on the FloCafe foundation, adapted and extended for a more complete, localized, modern POS experience. It preserves the proven FloCafe core while adding Lyra-specific improvements and integrations. Developed by Lyra Design.",
-    "aboutLyraPosWebsite": "Visit lyradesgin.ir"
+    "aboutLyraPos": "LyraPOS 정보",
+    "aboutLyraPosDescription": "LyraPOS는 FloCafe 기반을 바탕으로 더 완전하고 현지화된 현대적인 POS 경험을 제공하도록 조정하고 확장한 고급 버전입니다. 검증된 FloCafe 핵심을 유지하면서 Lyra만의 개선 사항과 통합 기능을 추가합니다. Lyra Design이 개발합니다.",
+    "aboutLyraPosWebsite": "lyradesgin.ir 방문"
   },
   "setup": {
     "alreadyCompleted": "이 설치에서는 초기 설정이 이미 완료되었습니다. 로그인으로 이동합니다…",
@@ -2272,7 +2272,7 @@
     "urgencyNormal": "보통 - 업무에 영향",
     "urgencyUrgent": "긴급 - 운영 불가",
     "version": "버전",
-    "lyraSupportNotice": "This section sends your report directly to the FloCafe core. For direct Lyra support, please contact Lyra through lyradesgin.ir."
+    "lyraSupportNotice": "이 섹션은 보고서를 FloCafe 코어로 직접 전송합니다. Lyra에 직접 문의하려면 lyradesgin.ir을 통해 연락해 주세요."
   },
   "tables": {
     "allFloors": "모든 홀",

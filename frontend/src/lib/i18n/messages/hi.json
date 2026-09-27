@@ -1998,9 +1998,9 @@
     "themeLight": "हल्का",
     "themeDark": "गहरा",
     "themeSystem": "सिस्टम",
-    "aboutLyraPos": "About LyraPOS",
-    "aboutLyraPosDescription": "LyraPOS is an advanced edition built on the FloCafe foundation, adapted and extended for a more complete, localized, modern POS experience. It preserves the proven FloCafe core while adding Lyra-specific improvements and integrations. Developed by Lyra Design.",
-    "aboutLyraPosWebsite": "Visit lyradesgin.ir"
+    "aboutLyraPos": "LyraPOS के बारे में",
+    "aboutLyraPosDescription": "LyraPOS, FloCafe के आधार पर बनाया गया एक उन्नत संस्करण है, जिसे अधिक पूर्ण, स्थानीयकृत और आधुनिक POS अनुभव के लिए अनुकूलित और विस्तारित किया गया है। यह FloCafe के प्रमाणित कोर को बनाए रखते हुए Lyra के विशेष सुधार और एकीकरण जोड़ता है। इसे Lyra Design ने विकसित किया है।",
+    "aboutLyraPosWebsite": "lyradesgin.ir पर जाएँ"
   },
   "setup": {
     "alreadyCompleted": "इस इंस्टाल पर सेटअप पहले ही पूरा हो चुका है. लॉगिन करने के लिए पुनः निर्देशित किया जा रहा है...",
@@ -2272,7 +2272,7 @@
     "urgencyNormal": "सामान्य - कार्य प्रभावित होता है",
     "urgencyUrgent": "अत्यावश्यक - संचालित करने में असमर्थ",
     "version": "संस्करण",
-    "lyraSupportNotice": "This section sends your report directly to the FloCafe core. For direct Lyra support, please contact Lyra through lyradesgin.ir."
+    "lyraSupportNotice": "यह अनुभाग आपकी रिपोर्ट सीधे FloCafe कोर को भेजता है। Lyra से सीधे संपर्क करने के लिए lyradesgin.ir के माध्यम से हमसे संपर्क करें।"
   },
   "tables": {
     "allFloors": "सभी मंज़िलें",
