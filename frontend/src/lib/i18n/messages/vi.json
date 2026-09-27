@@ -1997,7 +1997,10 @@
     "themeTitle": "Giao diện",
     "themeLight": "Sáng",
     "themeDark": "Tối",
-    "themeSystem": "Theo hệ thống"
+    "themeSystem": "Theo hệ thống",
+    "aboutLyraPos": "About LyraPOS",
+    "aboutLyraPosDescription": "LyraPOS is an advanced edition built on the FloCafe foundation, adapted and extended for a more complete, localized, modern POS experience. It preserves the proven FloCafe core while adding Lyra-specific improvements and integrations. Developed by Lyra Design.",
+    "aboutLyraPosWebsite": "Visit lyradesgin.ir"
   },
   "setup": {
     "alreadyCompleted": "Bản cài đặt này đã hoàn tất thiết lập. Đang chuyển đến đăng nhập…",
@@ -2268,7 +2271,8 @@
     "urgencyLow": "Thấp - câu hỏi hoặc phản hồi",
     "urgencyNormal": "Bình thường - công việc bị ảnh hưởng",
     "urgencyUrgent": "Khẩn cấp - không thể hoạt động",
-    "version": "Phiên bản"
+    "version": "Phiên bản",
+    "lyraSupportNotice": "This section sends your report directly to the FloCafe core. For direct Lyra support, please contact Lyra through lyradesgin.ir."
   },
   "tables": {
     "allFloors": "Tất cả khu vực",
