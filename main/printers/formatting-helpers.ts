@@ -26,7 +26,7 @@ import type { PrinterCutMode } from './profiles';
 
 export type { PrintWarning };
 
-const RECEIPT_BRANDING = 'Powered by FloPOS (flopos.com)';
+const RECEIPT_BRANDING = 'Powered by Lyra (Lyradesgin.ir)';
 
 const CURRENCY_TOKEN_RE = new RegExp(
   Object.keys(CURRENCY_ASCII_MAP)
